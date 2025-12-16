@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import applicationsRouter from './routes/applications';
 import budgetRouter from './routes/budget';
@@ -61,6 +61,31 @@ app.get('/api/dev-status', (_req, res) => {
       ],
       notes: 'Create WHAT_WE_ARE_WORKING_ON.md in project root'
     });
+  }
+});
+
+// Knowledge Base endpoints
+const knowledgeBasePath = join(__dirname, '../data/knowledge-base.json');
+
+app.get('/api/knowledge-base', (_req, res) => {
+  try {
+    if (existsSync(knowledgeBasePath)) {
+      const data = JSON.parse(readFileSync(knowledgeBasePath, 'utf-8'));
+      res.json({ success: true, data });
+    } else {
+      res.status(404).json({ success: false, error: 'Knowledge base not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to load knowledge base' });
+  }
+});
+
+app.put('/api/knowledge-base', (req, res) => {
+  try {
+    writeFileSync(knowledgeBasePath, JSON.stringify(req.body, null, 2));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to save knowledge base' });
   }
 });
 

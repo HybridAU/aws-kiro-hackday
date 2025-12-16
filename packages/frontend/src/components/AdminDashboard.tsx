@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { BudgetEditor } from './BudgetEditor';
+import { KnowledgeBaseEditor } from './KnowledgeBaseEditor';
 
 // Format large numbers compactly (e.g., $1.2M, $850K)
 function formatCurrency(amount: number): string {
@@ -88,6 +89,7 @@ export function AdminDashboard() {
   const [feedbackApp, setFeedbackApp] = useState<Application | null>(null);
   const [feedbackComments, setFeedbackComments] = useState('');
   const [showBudgetEditor, setShowBudgetEditor] = useState(false);
+  const [showKnowledgeBase, setShowKnowledgeBase] = useState(false);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const menuButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -259,18 +261,35 @@ export function AdminDashboard() {
     );
   }
 
+  // If knowledge base editor is open, show it inline
+  if (showKnowledgeBase) {
+    return (
+      <div className="p-6">
+        <KnowledgeBaseEditor onClose={() => setShowKnowledgeBase(false)} />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">📊 Admin Dashboard</h2>
-        {budgetStatus && (
+        <div className="flex gap-2">
           <button
-            onClick={() => setShowBudgetEditor(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex items-center gap-2"
+            onClick={() => setShowKnowledgeBase(true)}
+            className="bg-indigo-100 text-indigo-700 px-4 py-2 rounded hover:bg-indigo-200 flex items-center gap-2 border border-indigo-200"
           >
-            💰 Edit Budget
+            📚 Knowledge Base
           </button>
-        )}
+          {budgetStatus && (
+            <button
+              onClick={() => setShowBudgetEditor(true)}
+              className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex items-center gap-2"
+            >
+              💰 Edit Budget
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Budget Overview */}

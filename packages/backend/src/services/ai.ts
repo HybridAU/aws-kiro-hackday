@@ -1,4 +1,6 @@
 import OpenAI from 'openai';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 import type {
   Application,
   Category,
@@ -10,6 +12,19 @@ import type {
   ApplicationFormData,
   Message,
 } from '@dove-grants/shared';
+
+// Load knowledge base for AI context
+function loadKnowledgeBase(): Record<string, unknown> | null {
+  try {
+    const path = join(__dirname, '../../data/knowledge-base.json');
+    if (existsSync(path)) {
+      return JSON.parse(readFileSync(path, 'utf-8'));
+    }
+  } catch (e) {
+    console.error('Failed to load knowledge base:', e);
+  }
+  return null;
+}
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -35,9 +50,27 @@ export async function processApplicantMessage(
   conversationHistory: Message[],
   currentFormData: Partial<ApplicationFormData>
 ): Promise<AIResponse> {
+  const kb = loadKnowledgeBase();
+  const kbContext = kb ? `
+ORGANIZATION KNOWLEDGE BASE:
+Organization: ${(kb.organization as Record<string, string>)?.name || 'Grant Foundation'}
+${(kb.organization as Record<string, string>)?.description || ''}
+
+ELIGIBILITY & HOW TO APPLY:
+${(kb.forApplicants as Record<string, string>)?.eligibility || ''}
+
+${(kb.forApplicants as Record<string, string>)?.howToApply || ''}
+
+FUNDING CATEGORIES:
+${(kb.forApplicants as Record<string, string>)?.fundingCategories || ''}
+
+TIPS FOR STRONG APPLICATIONS:
+${(kb.forApplicants as Record<string, string>)?.tips || ''}
+` : '';
+
   const systemPrompt = `You are a friendly AI assistant helping someone apply for a grant. 
 Your job is to have a natural conversation and extract information for the grant application form.
-
+${kbContext}
 The form has these fields:
 - applicantName: The applicant's full name
 - applicantEmail: Their email address
@@ -49,6 +82,7 @@ Current form data: ${JSON.stringify(currentFormData)}
 
 When the user provides information, extract it and include field updates in your response.
 Be conversational and helpful. Ask follow-up questions to get missing information.
+If the user asks about eligibility, how to apply, or tips, use the knowledge base above.
 When all fields are filled, let them know they can submit.
 
 Respond in JSON format:
@@ -204,6 +238,21 @@ export async function processAdminMessage(
   applications: Application[],
   categories: Category[]
 ): Promise<AIResponse> {
+  const kb = loadKnowledgeBase();
+  const kbContext = kb ? `
+REVIEWER GUIDELINES:
+${(kb.forReviewers as Record<string, string>)?.scoringCriteria || ''}
+
+REVIEW PROCESS:
+${(kb.forReviewers as Record<string, string>)?.reviewProcess || ''}
+
+RED FLAGS TO WATCH FOR:
+${(kb.forReviewers as Record<string, string>)?.redFlags || ''}
+
+APPROVAL GUIDELINES:
+${(kb.forReviewers as Record<string, string>)?.approvalGuidelines || ''}
+` : '';
+
   // Create a summary of applications for context
   const appSummary = applications.map(app => ({
     ref: app.referenceNumber,
@@ -223,7 +272,7 @@ export async function processAdminMessage(
   }));
 
   const systemPrompt = `You are an AI assistant helping a grant administrator manage and review grant applications.
-
+${kbContext}
 You have access to the following data:
 
 APPLICATIONS (${applications.length} total):
@@ -237,6 +286,7 @@ Help the admin by:
 - Recommending which applications to review based on scores and status
 - Providing insights about budget allocation
 - Suggesting approvals based on ranking scores and available budget
+- Using the reviewer guidelines above when giving advice
 
 Be helpful, concise, and data-driven. Reference specific applications by their reference number or title.
 

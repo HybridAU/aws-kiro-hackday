@@ -1,0 +1,34 @@
+{
+  "organization": {
+    "name": "Dove Grants Foundation",
+    "description": "Supporting community initiatives across Western Australia since 2015",
+    "contact": "grants@dovefoundation.org.au",
+    "website": "https://dovegrants.org.au"
+  },
+  "forApplicants": {
+    "eligibility": "To be eligible for Dove Grants funding, your organization must:\n- Be a registered non-profit or community organization in Western Australia\n- Have been operating for at least 12 months\n- Have an ABN and appropriate insurance\n- Not have any outstanding acquittals from previous grants\n- Demonstrate community benefit and measurable outcomes",
+    "howToApply": "1. Review our funding categories to find the best fit for your project\n2. Prepare your project description with clear goals and timeline\n3. Create a detailed budget showing how funds will be used\n4. Gather supporting documents (ABN, insurance, letters of support)\n5. Submit your application through our online portal\n6. You'll receive a reference number for tracking",
+    "fundingCategories": "We fund projects in five categories:\n- Health & Wellbeing: Mental health, fitness, nutrition programs\n- Sport & Recreation: Equipment, facilities, community sports\n- Education & Training: Skills development, workshops, mentoring\n- Arts & Culture: Creative projects, cultural events, heritage\n- Community Development: Infrastructure, social programs, environment",
+    "tips": "Strong applications typically include:\n- Clear, measurable outcomes (e.g., '50 youth will complete the program')\n- Realistic budgets with quotes for major items\n- Evidence of community need and support\n- A sustainability plan beyond the grant period\n- Partnerships with other organizations"
+  },
+  "forReviewers": {
+    "scoringCriteria": "Applications are scored on:\n- Community Impact (40%): How many people benefit? What's the lasting change?\n- Feasibility (30%): Is the timeline realistic? Does the team have capacity?\n- Budget Quality (30%): Are costs reasonable? Is the budget detailed?\n\nScore thresholds:\n- 80+ : Strong recommend for approval\n- 60-79: Discuss at committee\n- Below 60: Likely decline",
+    "reviewProcess": "1. Initial screening: Check eligibility and completeness\n2. Auto-categorization: AI assigns to funding category\n3. Scoring: Review against criteria, assign scores\n4. Feedback: Request clarification if needed\n5. Committee: Final decisions on borderline cases\n6. Notification: Inform applicants of outcome",
+    "redFlags": "Watch for these issues:\n- Vague outcomes without measurable targets\n- Budgets missing key details or quotes\n- Requests exceeding category limits\n- Organizations with poor acquittal history\n- Projects duplicating existing services\n- Unrealistic timelines",
+    "approvalGuidelines": "When approving grants:\n- Ensure budget aligns with category allocation\n- Check for any conflicts of interest\n- Document reasoning for borderline decisions\n- Consider geographic distribution of funding\n- Prioritize first-time applicants when scores are equal"
+  },
+  "faqs": [
+    {
+      "question": "How long does the review process take?",
+      "answer": "Most applications are reviewed within 4-6 weeks. Complex applications or those requiring additional information may take longer."
+    },
+    {
+      "question": "Can I apply for multiple grants?",
+      "answer": "Yes, but each application must be for a distinct project. You cannot submit the same project to multiple categories."
+    },
+    {
+      "question": "What happens after approval?",
+      "answer": "You'll receive a grant agreement to sign, then funds are transferred within 14 days. You must submit an acquittal report within 3 months of project completion."
+    }
+  ]
+}
