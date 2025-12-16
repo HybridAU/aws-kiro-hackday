@@ -14,10 +14,10 @@ The system follows a three-tier architecture:
 
 ### Technology Stack Considerations
 
-- **Backend**: Node.js with Express.js or similar framework for API services
+- **Backend**: Django rest framework for API services
 - **Database**: PostgreSQL for relational data with audit trail capabilities
 - **Authentication**: JWT-based authentication with secure session management
-- **Frontend**: React or Vue.js for responsive web interfaces
+- **Frontend**: React for responsive web interfaces
 - **Security**: HTTPS enforcement, password hashing (bcrypt), input validation
 - **Email**: Integration with email service provider for notifications
 
