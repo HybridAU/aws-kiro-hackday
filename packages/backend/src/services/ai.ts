@@ -198,6 +198,84 @@ Respond in JSON format:
   });
 }
 
+export async function processAdminMessage(
+  message: string,
+  conversationHistory: Message[],
+  applications: Application[],
+  categories: Category[]
+): Promise<AIResponse> {
+  // Create a summary of applications for context
+  const appSummary = applications.map(app => ({
+    ref: app.referenceNumber,
+    title: app.projectTitle,
+    applicant: app.applicantName,
+    amount: app.requestedAmount,
+    status: app.status,
+    category: categories.find(c => c.id === app.categoryId)?.name || 'Uncategorized',
+    score: app.rankingScore,
+  }));
+
+  const categoryBudgets = categories.map(c => ({
+    name: c.name,
+    allocated: c.allocatedBudget,
+    spent: c.spentBudget,
+    remaining: c.allocatedBudget - c.spentBudget,
+  }));
+
+  const systemPrompt = `You are an AI assistant helping a grant administrator manage and review grant applications.
+
+You have access to the following data:
+
+APPLICATIONS (${applications.length} total):
+${JSON.stringify(appSummary, null, 2)}
+
+CATEGORY BUDGETS:
+${JSON.stringify(categoryBudgets, null, 2)}
+
+Help the admin by:
+- Answering questions about applications, budgets, and priorities
+- Recommending which applications to review based on scores and status
+- Providing insights about budget allocation
+- Suggesting approvals based on ranking scores and available budget
+
+Be helpful, concise, and data-driven. Reference specific applications by their reference number or title.
+
+Respond in JSON format:
+{
+  "message": "Your helpful response with specific data and recommendations",
+  "fieldUpdates": [],
+  "isComplete": false,
+  "nextQuestion": null
+}`;
+
+  const messages: OpenAI.ChatCompletionMessageParam[] = [
+    { role: 'system', content: systemPrompt },
+    ...conversationHistory.map((m) => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    })),
+    { role: 'user', content: message },
+  ];
+
+  const response = await withRetry(() =>
+    openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages,
+      response_format: { type: 'json_object' },
+    })
+  );
+
+  const content = response.choices[0]?.message?.content || '{}';
+  const parsed = JSON.parse(content);
+
+  return {
+    message: parsed.message || "I'm here to help you manage grant applications!",
+    fieldUpdates: [],
+    isComplete: false,
+    nextQuestion: null,
+  };
+}
+
 export function isAIConfigured(): boolean {
   return !!process.env.OPENAI_API_KEY;
 }

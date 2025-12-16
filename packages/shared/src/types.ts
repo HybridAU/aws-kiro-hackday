@@ -77,6 +77,13 @@ export interface BudgetConfig {
   fiscalYear: number;
   totalBudget: number;
   categories: Category[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Multi-year budget configuration storage
+export interface MultiBudgetConfig {
+  [fiscalYear: number]: BudgetConfig;
 }
 
 // AI response for conversation
@@ -180,4 +187,23 @@ export interface ValidationResult {
 export interface ValidationError {
   field: string;
   message: string;
+}
+
+// Budget validation types
+export interface BudgetValidationResult {
+  valid: boolean;
+  errors: BudgetValidationError[];
+  warnings: BudgetValidationWarning[];
+}
+
+export interface BudgetValidationError {
+  field: string;
+  message: string;
+  type: 'required' | 'invalid_format' | 'budget_exceeded' | 'negative_value';
+}
+
+export interface BudgetValidationWarning {
+  field: string;
+  message: string;
+  type: 'allocation_below_spent' | 'large_change';
 }
