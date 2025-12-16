@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   id: string;
@@ -207,7 +208,13 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
                       : 'bg-white border border-dove-200'
                   }`}
                 >
-                  {msg.content}
+                  {msg.role === 'assistant' ? (
+                    <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-dove-800">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    msg.content
+                  )}
                   {msg.fieldUpdates && msg.fieldUpdates.length > 0 && (
                     <div className="mt-2 text-xs opacity-75">
                       Updated: {msg.fieldUpdates.map((u) => u.field).join(', ')}
