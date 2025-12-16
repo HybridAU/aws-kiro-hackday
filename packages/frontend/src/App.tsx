@@ -57,33 +57,42 @@ function App() {
 
       {/* Header */}
       <header className="bg-dove-800 text-white p-4">
-        <div className="container mx-auto flex justify-between items-center">
+        <div className="container mx-auto flex items-center gap-8">
           <h1 className="text-2xl font-bold">🕊️ Dove Grants</h1>
-          <nav className="space-x-4">
-            <button
-              onClick={() => setRole('applicant')}
-              className={`px-4 py-2 rounded transition-colors ${
-                role === 'applicant' ? 'bg-dove-600' : 'hover:bg-dove-700'
-              }`}
-            >
-              Apply for Grant
-            </button>
-            <button
-              onClick={() => setRole('my-applications')}
-              className={`px-4 py-2 rounded transition-colors ${
-                role === 'my-applications' ? 'bg-dove-600' : 'hover:bg-dove-700'
-              }`}
-            >
-              My Applications
-            </button>
-            <button
-              onClick={() => setRole('admin')}
-              className={`px-4 py-2 rounded transition-colors ${
-                role === 'admin' ? 'bg-dove-600' : 'hover:bg-dove-700'
-              }`}
-            >
-              Admin Dashboard
-            </button>
+          <nav className="flex items-center flex-1 justify-between">
+            {/* Applicant tabs - left side */}
+            <div className="flex items-center space-x-1 bg-dove-700/50 rounded-lg p-1">
+              <span className="text-dove-300 text-sm px-2">👤</span>
+              <button
+                onClick={() => setRole('applicant')}
+                className={`px-4 py-2 rounded-md transition-colors ${
+                  role === 'applicant' ? 'bg-dove-600 text-white' : 'text-dove-200 hover:bg-dove-700'
+                }`}
+              >
+                Apply for Grant
+              </button>
+              <button
+                onClick={() => setRole('my-applications')}
+                className={`px-4 py-2 rounded-md transition-colors ${
+                  role === 'my-applications' ? 'bg-dove-600 text-white' : 'text-dove-200 hover:bg-dove-700'
+                }`}
+              >
+                My Applications
+              </button>
+            </div>
+
+            {/* Admin tab - right side */}
+            <div className="flex items-center space-x-1 bg-dove-700/50 rounded-lg p-1">
+              <span className="text-dove-300 text-sm px-2">🔐</span>
+              <button
+                onClick={() => setRole('admin')}
+                className={`px-4 py-2 rounded-md transition-colors ${
+                  role === 'admin' ? 'bg-dove-600 text-white' : 'text-dove-200 hover:bg-dove-700'
+                }`}
+              >
+                Admin
+              </button>
+            </div>
           </nav>
         </div>
       </header>
