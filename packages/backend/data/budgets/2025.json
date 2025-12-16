@@ -1,48 +1,48 @@
 {
   "fiscalYear": 2025,
-  "totalBudget": 10000000,
+  "totalBudget": 1200000,
   "categories": [
     {
       "id": "medical",
-      "name": "Medical",
-      "description": "Healthcare projects",
-      "allocatedBudget": 30000,
-      "spentBudget": 1000000,
-      "isActive": true
+      "name": "Health & Wellbeing",
+      "description": "Healthcare, medical research, and mental health initiatives",
+      "allocatedBudget": 350000,
+      "isActive": true,
+      "spentBudget": 25000
     },
     {
       "id": "sport",
-      "name": "Sport",
-      "description": "Athletic programs",
-      "allocatedBudget": 20000,
-      "spentBudget": 0,
-      "isActive": true
+      "name": "Sport & Recreation",
+      "description": "Athletic programs, facilities, and community sports",
+      "allocatedBudget": 250000,
+      "isActive": true,
+      "spentBudget": 0
     },
     {
       "id": "education",
-      "name": "Education",
-      "description": "Educational initiatives",
-      "allocatedBudget": 25000,
-      "spentBudget": 0,
-      "isActive": true
+      "name": "Education & Training",
+      "description": "Educational initiatives, scholarships, and skills development",
+      "allocatedBudget": 220000,
+      "isActive": true,
+      "spentBudget": 18000
     },
     {
       "id": "arts",
-      "name": "Arts",
-      "description": "Cultural and artistic projects",
-      "allocatedBudget": 15000,
-      "spentBudget": 0,
-      "isActive": true
+      "name": "Arts & Culture",
+      "description": "Cultural programs, heritage preservation, and creative arts",
+      "allocatedBudget": 200000,
+      "isActive": true,
+      "spentBudget": 0
     },
     {
       "id": "community",
-      "name": "Community",
-      "description": "Community development",
-      "allocatedBudget": 10000,
-      "spentBudget": 0,
-      "isActive": true
+      "name": "Community Development",
+      "description": "Social services, infrastructure, and community building",
+      "allocatedBudget": 180000,
+      "isActive": true,
+      "spentBudget": 0
     }
   ],
-  "createdAt": "2025-12-16T05:02:46.023Z",
-  "updatedAt": "2025-12-16T05:02:46.023Z"
+  "createdAt": "2025-12-16T05:49:51.687Z",
+  "updatedAt": "2025-12-16T05:49:51.687Z"
 }

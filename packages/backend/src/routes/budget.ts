@@ -5,6 +5,7 @@ import {
   getCategories,
   updateCategory,
   listApplications,
+  enrichCategoriesWithSpentBudgets,
 } from '../services/data';
 import {
   loadBudgetConfigForYear,
@@ -209,16 +210,24 @@ router.get('/config/:year', async (req, res) => {
       });
     }
 
-    const config = await loadBudgetConfigForYear(year);
+    const storedConfig = await loadBudgetConfigForYear(year);
     
-    if (!config) {
+    if (!storedConfig) {
       return res.status(404).json({
         success: false,
         error: { code: 'NOT_FOUND', message: 'Budget configuration not found for this year' },
       });
     }
 
-    res.json({ success: true, data: config });
+    // Enrich with calculated spent budgets for frontend
+    const enrichedCategories = await enrichCategoriesWithSpentBudgets(storedConfig.categories);
+    
+    const enrichedConfig = {
+      ...storedConfig,
+      categories: enrichedCategories
+    };
+
+    res.json({ success: true, data: enrichedConfig });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -335,6 +344,20 @@ router.delete('/config/:year', async (req, res) => {
     }
 
     res.json({ success: true, data: { deleted: true, year } });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: (error as Error).message },
+    });
+  }
+});
+
+// POST /api/budget/recalculate - Spent budgets are now calculated dynamically
+router.post('/recalculate', async (_req, res) => {
+  try {
+    // Spent budgets are now calculated dynamically from approved applications
+    // This endpoint is kept for backward compatibility but no action is needed
+    res.json({ success: true, message: 'Spent budgets are calculated dynamically from approved applications' });
   } catch (error) {
     res.status(500).json({
       success: false,

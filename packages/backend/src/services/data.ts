@@ -5,7 +5,9 @@ import { v4 as uuidv4 } from 'uuid';
 import type {
   Application,
   Category,
+  StoredCategory,
   BudgetConfig,
+  StoredBudgetConfig,
   RankingCriterion,
   ApplicationFormData,
   ApplicationFilters,
@@ -69,8 +71,7 @@ export async function createApplication(formData: ApplicationFormData): Promise<
     decisionReason: null,
     decidedAt: null,
     attachments: [],
-    feedbackComments: null,
-    feedbackRequestedAt: null,
+    feedbackHistory: [],
   };
 
   applications.push(application);
@@ -122,19 +123,32 @@ export async function loadBudgetConfig(): Promise<BudgetConfig> {
   const currentYear = new Date().getFullYear();
   
   // Try to load current year's budget
-  let config = await loadBudgetConfigForYear(currentYear);
+  let storedConfig = await loadBudgetConfigForYear(currentYear);
   
-  if (!config) {
+  if (!storedConfig) {
     // Create default config for current year
-    config = await createBudgetConfigForYear(currentYear);
+    storedConfig = await createBudgetConfigForYear(currentYear);
   }
   
-  return config;
+  // Enrich categories with calculated spent budgets
+  const enrichedCategories = await enrichCategoriesWithSpentBudgets(storedConfig.categories);
+  
+  return {
+    ...storedConfig,
+    categories: enrichedCategories
+  };
 }
 
 export async function saveBudgetConfig(config: BudgetConfig): Promise<void> {
   const fiscalYear = config.fiscalYear || new Date().getFullYear();
-  await saveBudgetConfigForYear(fiscalYear, config);
+  
+  // Convert to StoredBudgetConfig (remove spentBudget as it's calculated dynamically)
+  const storedConfig: StoredBudgetConfig = {
+    ...config,
+    categories: config.categories.map(({ spentBudget, ...category }) => category)
+  };
+  
+  await saveBudgetConfigForYear(fiscalYear, storedConfig);
 }
 
 export async function getCategories(): Promise<Category[]> {
@@ -150,6 +164,38 @@ export async function updateCategory(id: string, updates: Partial<Category>): Pr
   config.categories[index] = { ...config.categories[index], ...updates };
   await saveBudgetConfig(config);
   return config.categories[index];
+}
+
+/**
+ * Calculate spent amounts for each category from approved applications
+ */
+export async function calculateSpentBudgets(): Promise<Map<string, number>> {
+  const applications = await listApplications();
+  const spentByCategory = new Map<string, number>();
+
+  // Calculate actual spent amounts from approved applications
+  const approvedApplications = applications.filter(app => app.status === 'approved');
+  
+  approvedApplications.forEach(app => {
+    if (app.categoryId) {
+      const currentSpent = spentByCategory.get(app.categoryId) || 0;
+      spentByCategory.set(app.categoryId, currentSpent + app.requestedAmount);
+    }
+  });
+
+  return spentByCategory;
+}
+
+/**
+ * Convert stored categories to full categories with calculated spentBudget
+ */
+export async function enrichCategoriesWithSpentBudgets(storedCategories: StoredCategory[]): Promise<Category[]> {
+  const spentByCategory = await calculateSpentBudgets();
+  
+  return storedCategories.map(category => ({
+    ...category,
+    spentBudget: spentByCategory.get(category.id) || 0
+  }));
 }
 
 // Ranking Criteria

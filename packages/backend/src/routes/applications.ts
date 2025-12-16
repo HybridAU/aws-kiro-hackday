@@ -7,7 +7,6 @@ import {
   updateApplication,
   listApplications,
   loadBudgetConfig,
-  saveBudgetConfig,
   getCategories,
   loadCriteria,
 } from '../services/data';
@@ -137,9 +136,8 @@ router.patch('/:id', async (req, res) => {
           });
         }
 
-        // Deduct from budget
-        category.spentBudget += application.requestedAmount;
-        await saveBudgetConfig(config);
+        // Note: spentBudget is now calculated dynamically from approved applications
+        // No need to manually update it here
       }
 
       await updateApplication(req.params.id, {

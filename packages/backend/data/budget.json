@@ -7,7 +7,6 @@
       "name": "Health & Wellbeing",
       "description": "Healthcare, medical research, and mental health initiatives",
       "allocatedBudget": 35000000,
-      "spentBudget": 28500000,
       "isActive": true
     },
     {
@@ -15,7 +14,6 @@
       "name": "Sport & Recreation",
       "description": "Athletic programs, facilities, and community sports",
       "allocatedBudget": 25000000,
-      "spentBudget": 18200000,
       "isActive": true
     },
     {
@@ -23,7 +21,6 @@
       "name": "Education & Training",
       "description": "Educational initiatives, scholarships, and skills development",
       "allocatedBudget": 22000000,
-      "spentBudget": 15800000,
       "isActive": true
     },
     {
@@ -31,7 +28,6 @@
       "name": "Arts & Culture",
       "description": "Cultural programs, heritage preservation, and creative arts",
       "allocatedBudget": 20000000,
-      "spentBudget": 12500000,
       "isActive": true
     },
     {
@@ -39,7 +35,6 @@
       "name": "Community Development",
       "description": "Social services, infrastructure, and community building",
       "allocatedBudget": 18000000,
-      "spentBudget": 9800000,
       "isActive": true
     }
   ]

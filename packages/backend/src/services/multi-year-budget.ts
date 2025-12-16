@@ -1,7 +1,7 @@
 import { readFile, writeFile, mkdir, readdir, stat } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import type { BudgetConfig, MultiBudgetConfig } from '@dove-grants/shared';
+import type { BudgetConfig, StoredBudgetConfig } from '@dove-grants/shared';
 import { migrateBudgetConfig, createDefaultBudgetConfig, isValidFiscalYear } from '@dove-grants/shared';
 
 const DATA_DIR = join(process.cwd(), 'data');
@@ -27,7 +27,7 @@ function getBudgetFilePath(fiscalYear: number): string {
 /**
  * Load budget configuration for a specific fiscal year
  */
-export async function loadBudgetConfigForYear(fiscalYear: number): Promise<BudgetConfig | null> {
+export async function loadBudgetConfigForYear(fiscalYear: number): Promise<StoredBudgetConfig | null> {
   if (!isValidFiscalYear(fiscalYear)) {
     throw new Error(`Invalid fiscal year: ${fiscalYear}`);
   }
@@ -55,7 +55,7 @@ export async function loadBudgetConfigForYear(fiscalYear: number): Promise<Budge
 /**
  * Save budget configuration for a specific fiscal year
  */
-export async function saveBudgetConfigForYear(fiscalYear: number, config: BudgetConfig): Promise<void> {
+export async function saveBudgetConfigForYear(fiscalYear: number, config: StoredBudgetConfig): Promise<void> {
   if (!isValidFiscalYear(fiscalYear)) {
     throw new Error(`Invalid fiscal year: ${fiscalYear}`);
   }
@@ -109,7 +109,7 @@ export async function getAvailableFiscalYears(): Promise<number[]> {
 /**
  * Create a new budget configuration for a fiscal year
  */
-export async function createBudgetConfigForYear(fiscalYear: number): Promise<BudgetConfig> {
+export async function createBudgetConfigForYear(fiscalYear: number): Promise<StoredBudgetConfig> {
   if (!isValidFiscalYear(fiscalYear)) {
     throw new Error(`Invalid fiscal year: ${fiscalYear}`);
   }
@@ -181,10 +181,11 @@ export async function budgetConfigExistsForYear(fiscalYear: number): Promise<boo
 
 /**
  * Load all budget configurations (for admin purposes)
+ * Note: This returns StoredBudgetConfig - use loadBudgetConfig() for enriched data
  */
-export async function loadAllBudgetConfigs(): Promise<MultiBudgetConfig> {
+export async function loadAllBudgetConfigs(): Promise<{ [fiscalYear: number]: StoredBudgetConfig }> {
   const years = await getAvailableFiscalYears();
-  const configs: MultiBudgetConfig = {};
+  const configs: { [fiscalYear: number]: StoredBudgetConfig } = {};
   
   for (const year of years) {
     const config = await loadBudgetConfigForYear(year);

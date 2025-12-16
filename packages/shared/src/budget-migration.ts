@@ -1,4 +1,4 @@
-import type { BudgetConfig, MultiBudgetConfig } from './types';
+import type { BudgetConfig, StoredBudgetConfig, MultiBudgetConfig } from './types';
 
 /**
  * Migrates a single BudgetConfig to include timestamp fields
@@ -29,18 +29,18 @@ export function migrateLegacyBudget(legacyConfig: Partial<BudgetConfig>): MultiB
 /**
  * Creates a default budget config for a given year
  */
-export function createDefaultBudgetConfig(fiscalYear: number): BudgetConfig {
+export function createDefaultBudgetConfig(fiscalYear: number): StoredBudgetConfig {
   const now = new Date();
   
   return {
     fiscalYear,
     totalBudget: 100000,
     categories: [
-      { id: 'medical', name: 'Medical', description: 'Healthcare projects', allocatedBudget: 30000, spentBudget: 0, isActive: true },
-      { id: 'sport', name: 'Sport', description: 'Athletic programs', allocatedBudget: 20000, spentBudget: 0, isActive: true },
-      { id: 'education', name: 'Education', description: 'Educational initiatives', allocatedBudget: 25000, spentBudget: 0, isActive: true },
-      { id: 'arts', name: 'Arts', description: 'Cultural and artistic projects', allocatedBudget: 15000, spentBudget: 0, isActive: true },
-      { id: 'community', name: 'Community', description: 'Community development', allocatedBudget: 10000, spentBudget: 0, isActive: true },
+      { id: 'medical', name: 'Medical', description: 'Healthcare projects', allocatedBudget: 30000, isActive: true },
+      { id: 'sport', name: 'Sport', description: 'Athletic programs', allocatedBudget: 20000, isActive: true },
+      { id: 'education', name: 'Education', description: 'Educational initiatives', allocatedBudget: 25000, isActive: true },
+      { id: 'arts', name: 'Arts', description: 'Cultural and artistic projects', allocatedBudget: 15000, isActive: true },
+      { id: 'community', name: 'Community', description: 'Community development', allocatedBudget: 10000, isActive: true },
     ],
     createdAt: now,
     updatedAt: now,

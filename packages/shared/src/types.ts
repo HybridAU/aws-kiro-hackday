@@ -50,13 +50,22 @@ export interface Application {
   feedbackHistory: FeedbackNote[];
 }
 
-// Budget category
+// Budget category (with calculated spentBudget)
 export interface Category {
   id: string;
   name: string;
   description: string;
   allocatedBudget: number;
   spentBudget: number;
+  isActive: boolean;
+}
+
+// Stored budget category (spentBudget calculated dynamically)
+export interface StoredCategory {
+  id: string;
+  name: string;
+  description: string;
+  allocatedBudget: number;
   isActive: boolean;
 }
 
@@ -80,10 +89,20 @@ export interface CriterionScore {
 }
 
 // Budget configuration
+// Budget configuration (with calculated spentBudget)
 export interface BudgetConfig {
   fiscalYear: number;
   totalBudget: number;
   categories: Category[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Stored budget configuration (spentBudget calculated dynamically)
+export interface StoredBudgetConfig {
+  fiscalYear: number;
+  totalBudget: number;
+  categories: StoredCategory[];
   createdAt: Date;
   updatedAt: Date;
 }
