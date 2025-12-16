@@ -202,6 +202,15 @@ export function AdminDashboard() {
     );
   }
 
+  // If budget editor is open, show it inline instead of the dashboard
+  if (showBudgetEditor) {
+    return (
+      <div className="p-6">
+        <BudgetEditor onClose={() => { setShowBudgetEditor(false); fetchData(); }} />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -209,7 +218,7 @@ export function AdminDashboard() {
         {budgetStatus && (
           <button
             onClick={() => setShowBudgetEditor(true)}
-            className="bg-dove-600 text-white px-4 py-2 rounded hover:bg-dove-700 flex items-center gap-2"
+            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex items-center gap-2"
           >
             💰 Edit Budget
           </button>
@@ -515,7 +524,7 @@ export function AdminDashboard() {
             <div className="flex gap-2 mt-4">
               <button
                 onClick={handleSaveEdit}
-                className="flex-1 bg-dove-600 text-white py-2 rounded hover:bg-dove-700"
+                className="flex-1 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
               >
                 Save
               </button>
@@ -787,12 +796,6 @@ export function AdminDashboard() {
         </div>
       )}
 
-      {/* Budget Editor Modal/Overlay */}
-      {showBudgetEditor && (
-        <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
-          <BudgetEditor onClose={() => setShowBudgetEditor(false)} />
-        </div>
-      )}
     </div>
   );
 }

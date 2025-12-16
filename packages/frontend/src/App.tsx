@@ -50,23 +50,31 @@ function App() {
     });
   };
 
+  const isAdmin = role === 'admin';
+
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       {/* Dev Mode Banner */}
       <DevBanner />
 
-      {/* Header */}
-      <header className="bg-dove-800 text-white p-4">
-        <div className="container mx-auto flex items-center gap-8">
-          <h1 className="text-2xl font-bold">🕊️ Dove Grants</h1>
-          <nav className="flex items-center flex-1 justify-between">
+      {/* Header - different color for admin vs applicant */}
+      <header className={`${isAdmin ? 'bg-indigo-800' : 'bg-sky-600'} text-white p-4 transition-colors duration-300`}>
+        <div className="flex items-center w-full px-4">
+          {/* Logo - left aligned */}
+          <h1 className="text-2xl font-bold shrink-0">🕊️ Dove Grants</h1>
+          
+          {/* Nav - spread across with justify-between */}
+          <nav className="flex-1 flex items-center justify-between mx-8">
             {/* Applicant tabs - left side */}
-            <div className="flex items-center space-x-1 bg-dove-700/50 rounded-lg p-1">
-              <span className="text-dove-300 text-sm px-2">👤</span>
+            <div className={`flex items-center space-x-1 ${isAdmin ? 'bg-indigo-700/50' : 'bg-sky-500/50'} rounded-lg p-1`}>
               <button
                 onClick={() => setRole('applicant')}
                 className={`px-4 py-2 rounded-md transition-colors ${
-                  role === 'applicant' ? 'bg-dove-600 text-white' : 'text-dove-200 hover:bg-dove-700'
+                  role === 'applicant' 
+                    ? 'bg-sky-400 text-white' 
+                    : isAdmin 
+                      ? 'text-indigo-200 hover:bg-indigo-700' 
+                      : 'text-sky-100 hover:bg-sky-500'
                 }`}
               >
                 Apply for Grant
@@ -74,7 +82,11 @@ function App() {
               <button
                 onClick={() => setRole('my-applications')}
                 className={`px-4 py-2 rounded-md transition-colors ${
-                  role === 'my-applications' ? 'bg-dove-600 text-white' : 'text-dove-200 hover:bg-dove-700'
+                  role === 'my-applications' 
+                    ? 'bg-sky-400 text-white' 
+                    : isAdmin 
+                      ? 'text-indigo-200 hover:bg-indigo-700' 
+                      : 'text-sky-100 hover:bg-sky-500'
                 }`}
               >
                 My Applications
@@ -82,18 +94,36 @@ function App() {
             </div>
 
             {/* Admin tab - right side */}
-            <div className="flex items-center space-x-1 bg-dove-700/50 rounded-lg p-1">
-              <span className="text-dove-300 text-sm px-2">🔐</span>
+            <div className={`flex items-center space-x-1 ${isAdmin ? 'bg-indigo-700/50' : 'bg-sky-500/50'} rounded-lg p-1`}>
               <button
                 onClick={() => setRole('admin')}
                 className={`px-4 py-2 rounded-md transition-colors ${
-                  role === 'admin' ? 'bg-dove-600 text-white' : 'text-dove-200 hover:bg-dove-700'
+                  role === 'admin' 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'text-sky-100 hover:bg-sky-500'
                 }`}
               >
                 Admin
               </button>
             </div>
           </nav>
+
+          {/* Avatar - right aligned */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
+              isAdmin 
+                ? 'bg-indigo-600 ring-2 ring-indigo-400' 
+                : 'bg-sky-400 ring-2 ring-sky-300'
+            }`}>
+              {isAdmin ? '👩‍💼' : '👨‍💻'}
+            </div>
+            <div className="text-sm">
+              <div className="font-medium">{isAdmin ? 'Sarah Admin' : 'John Applicant'}</div>
+              <div className={`text-xs ${isAdmin ? 'text-indigo-300' : 'text-sky-200'}`}>
+                {isAdmin ? 'Grant Manager' : 'Applicant'}
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 

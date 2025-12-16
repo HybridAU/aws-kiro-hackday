@@ -295,8 +295,12 @@ export function MyApplications() {
             <div className="flex gap-2">
               <button
                 onClick={handleSubmitResponse}
+<<<<<<< HEAD
                 disabled={!responseText.trim()}
                 className="flex-1 bg-dove-600 text-white py-2 rounded-lg hover:bg-dove-700 disabled:opacity-50"
+=======
+                className="flex-1 bg-sky-500 text-white py-2 rounded-lg hover:bg-sky-600"
+>>>>>>> origin/main
               >
                 Send Response
               </button>
