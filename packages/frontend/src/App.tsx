@@ -3,9 +3,10 @@ import { SplitScreenLayout } from './components/SplitScreenLayout';
 import { AICompanion } from './components/AICompanion';
 import { ApplicationForm } from './components/ApplicationForm';
 import { AdminDashboard } from './components/AdminDashboard';
+import { MyApplications } from './components/MyApplications';
 import { DevBanner } from './components/DevBanner';
 
-type UserRole = 'applicant' | 'admin';
+type UserRole = 'applicant' | 'admin' | 'my-applications';
 
 interface FormData {
   applicantName: string;
@@ -68,6 +69,14 @@ function App() {
               Apply for Grant
             </button>
             <button
+              onClick={() => setRole('my-applications')}
+              className={`px-4 py-2 rounded transition-colors ${
+                role === 'my-applications' ? 'bg-dove-600' : 'hover:bg-dove-700'
+              }`}
+            >
+              My Applications
+            </button>
+            <button
               onClick={() => setRole('admin')}
               className={`px-4 py-2 rounded transition-colors ${
                 role === 'admin' ? 'bg-dove-600' : 'hover:bg-dove-700'
@@ -80,29 +89,35 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <SplitScreenLayout
-        userRole={role}
-        leftPanel={
-          <AICompanion
-            mode={mode}
-            onFieldUpdate={handleFieldUpdate}
-            onModeChange={setMode}
-            context={role === 'applicant' ? 'application' : 'admin'}
-          />
-        }
-        rightPanel={
-          role === 'applicant' ? (
-            <ApplicationForm
-              formData={formData}
-              highlightedField={highlightedField}
-              onManualEdit={handleFieldUpdate}
-              onSubmit={handleFormSubmit}
+      {role === 'my-applications' ? (
+        <div className="flex-1 overflow-auto bg-dove-100">
+          <MyApplications />
+        </div>
+      ) : (
+        <SplitScreenLayout
+          userRole={role === 'applicant' ? 'applicant' : 'admin'}
+          leftPanel={
+            <AICompanion
+              mode={mode}
+              onFieldUpdate={handleFieldUpdate}
+              onModeChange={setMode}
+              context={role === 'applicant' ? 'application' : 'admin'}
             />
-          ) : (
-            <AdminDashboard />
-          )
-        }
-      />
+          }
+          rightPanel={
+            role === 'applicant' ? (
+              <ApplicationForm
+                formData={formData}
+                highlightedField={highlightedField}
+                onManualEdit={handleFieldUpdate}
+                onSubmit={handleFormSubmit}
+              />
+            ) : (
+              <AdminDashboard />
+            )
+          }
+        />
+      )}
     </div>
   );
 }

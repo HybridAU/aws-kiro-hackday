@@ -73,7 +73,16 @@ router.get('/', async (req, res) => {
     if (req.query.status) filters.status = req.query.status as ApplicationStatus;
     if (req.query.search) filters.searchTerm = req.query.search as string;
 
-    const applications = await listApplications(filters);
+    let applications = await listApplications(filters);
+
+    // Filter by email if provided (for "My Applications" feature)
+    if (req.query.email) {
+      const email = (req.query.email as string).toLowerCase();
+      applications = applications.filter(
+        (app) => app.applicantEmail.toLowerCase() === email
+      );
+    }
+
     res.json({ success: true, data: applications });
   } catch (error) {
     res.status(500).json({
@@ -170,6 +179,11 @@ router.patch('/:id', async (req, res) => {
         if (req.body[field] !== undefined) {
           updates[field] = req.body[field];
         }
+      }
+      // Allow status update to 'submitted' when responding to feedback
+      if (req.body.status === 'submitted' && application.status === 'feedback_requested') {
+        updates.status = 'submitted';
+        updates.feedbackComments = null; // Clear feedback after response
       }
       if (Object.keys(updates).length > 0) {
         await updateApplication(req.params.id, updates);
