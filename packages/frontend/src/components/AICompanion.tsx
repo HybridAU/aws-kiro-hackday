@@ -18,6 +18,7 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isConnected, setIsConnected] = useState(false);
+  const [isAIConfigured, setIsAIConfigured] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -34,6 +35,27 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
   onFieldUpdateRef.current = onFieldUpdate;
   modeRef.current = mode;
   contextRef.current = context;
+
+  // Check AI configuration status
+  // The AI assistant shows "Connected" only when both WebSocket is connected AND AI is configured
+  // AI is configured when the backend has OPENAI_API_KEY environment variable set
+  useEffect(() => {
+    const checkAIStatus = async () => {
+      try {
+        const response = await fetch('/health');
+        const data = await response.json();
+        setIsAIConfigured(data.aiConfigured || false);
+      } catch (error) {
+        console.error('Failed to check AI status:', error);
+        setIsAIConfigured(false);
+      }
+    };
+
+    checkAIStatus();
+    // Check AI status periodically to detect configuration changes
+    const interval = setInterval(checkAIStatus, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   // Reset messages and notify server when context changes
   useEffect(() => {
@@ -180,19 +202,40 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
         </h2>
         <div className="flex items-center gap-2">
           <span
-            className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}
+            className={`w-2 h-2 rounded-full ${isConnected && isAIConfigured ? 'bg-green-500' : 'bg-red-500'}`}
           />
-          <span className="text-sm text-dove-500">{isConnected ? 'Connected' : 'Disconnected'}</span>
+          <span 
+            className="text-sm text-dove-500"
+            title={
+              !isConnected 
+                ? 'WebSocket connection failed'
+                : !isAIConfigured 
+                  ? 'AI not configured - add OPENAI_API_KEY to backend .env file'
+                  : 'AI assistant is ready'
+            }
+          >
+            {isConnected && isAIConfigured ? 'Connected' : 'Disconnected'}
+          </span>
         </div>
       </div>
 
       <div className="flex-1 bg-dove-50 rounded-lg p-4 mb-4 overflow-y-auto">
         {messages.length === 0 ? (
-          <p className="text-dove-500 text-center mt-8">
-            {context === 'application'
-              ? "Hi! I'm here to help you apply for a grant. Tell me about your project!"
-              : "Hi! I'm here to help you manage grants. Ask me about reviewing applications, budget allocation, or ranking criteria."}
-          </p>
+          <div className="text-center mt-8">
+            {!isAIConfigured ? (
+              <div className="text-dove-500">
+                <p className="mb-2">🤖 AI Assistant is not configured</p>
+                <p className="text-sm">Please configure the OpenAI API key to enable AI assistance.</p>
+                <p className="text-sm mt-2">You can still use the form manually.</p>
+              </div>
+            ) : (
+              <p className="text-dove-500">
+                {context === 'application'
+                  ? "Hi! I'm here to help you apply for a grant. Tell me about your project!"
+                  : "Hi! I'm here to help you manage grants. Ask me about reviewing applications, budget allocation, or ranking criteria."}
+              </p>
+            )}
+          </div>
         ) : (
           <div className="space-y-4">
             {messages.map((msg) => (
@@ -234,15 +277,25 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={isListening ? '🎙️ Listening... speak now' : 'Type your message...'}
-          disabled={mode === 'voice' && isListening}
+          placeholder={
+            !isAIConfigured 
+              ? 'AI not configured - use form manually'
+              : isListening 
+                ? '🎙️ Listening... speak now' 
+                : 'Type your message...'
+          }
+          disabled={!isAIConfigured || (mode === 'voice' && isListening)}
           className={`flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-dove-500 ${
-            isListening ? 'border-red-400 bg-red-50 animate-pulse' : 'border-dove-300'
+            !isAIConfigured 
+              ? 'border-dove-200 bg-dove-100 text-dove-400'
+              : isListening 
+                ? 'border-red-400 bg-red-50 animate-pulse' 
+                : 'border-dove-300'
           }`}
         />
         <button
           type="submit"
-          disabled={!input.trim()}
+          disabled={!isAIConfigured || !input.trim()}
           className="bg-dove-600 text-white px-4 py-2 rounded-lg hover:bg-dove-700 disabled:opacity-50"
         >
           Send
@@ -250,10 +303,13 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
         <button
           type="button"
           onClick={toggleVoice}
-          className={`px-4 py-2 rounded-lg ${
-            mode === 'voice'
-              ? 'bg-red-500 text-white'
-              : 'bg-dove-200 text-dove-700 hover:bg-dove-300'
+          disabled={!isAIConfigured}
+          className={`px-4 py-2 rounded-lg disabled:opacity-50 ${
+            !isAIConfigured
+              ? 'bg-dove-200 text-dove-400 cursor-not-allowed'
+              : mode === 'voice'
+                ? 'bg-red-500 text-white'
+                : 'bg-dove-200 text-dove-700 hover:bg-dove-300'
           }`}
         >
           {isListening ? '🔴' : '🎤'}
