@@ -5,6 +5,7 @@ import { ApplicationForm } from './components/ApplicationForm';
 import { AdminDashboard } from './components/AdminDashboard';
 import { MyApplications } from './components/MyApplications';
 import { DevBanner } from './components/DevBanner';
+import { TetrisGame } from './components/TetrisGame';
 
 type UserRole = 'applicant' | 'admin' | 'my-applications';
 
@@ -27,6 +28,7 @@ function App() {
     projectDescription: '',
     requestedAmount: '',
   });
+  const [showTetris, setShowTetris] = useState(false);
 
   const handleFieldUpdate = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -108,8 +110,12 @@ function App() {
             </div>
           </nav>
 
-          {/* Avatar - right aligned */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Avatar - right aligned (click for easter egg!) */}
+          <div 
+            className="flex items-center gap-2 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => setShowTetris(true)}
+            title="🎮"
+          >
             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
               isAdmin 
                 ? 'bg-indigo-600 ring-2 ring-indigo-400' 
@@ -157,6 +163,9 @@ function App() {
           }
         />
       )}
+
+      {/* Easter Egg: Tetris Game */}
+      {showTetris && <TetrisGame onClose={() => setShowTetris(false)} />}
     </div>
   );
 }
