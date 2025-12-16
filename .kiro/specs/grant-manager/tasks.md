@@ -1,0 +1,230 @@
+# Implementation Plan
+
+- [x] 1. Set up project structure and core dependencies
+  - Initialize monorepo with frontend (React/Vite) and backend (Node.js/Express)
+  - Configure TypeScript, TailwindCSS, and testing framework (Vitest, fast-check)
+  - Set up ESLint and Prettier
+  - _Requirements: 9.1_
+
+- [ ] 2. Implement core data models and serialization
+  - [x] 2.1 Create Application, Category, and RankingCriterion interfaces and types
+    - Define all TypeScript interfaces from design document
+    - Implement type guards for runtime validation
+    - _Requirements: 1.1, 3.2, 5.1_
+  - [x] 2.2 Write property test for data serialization round-trip
+    - **Property 14: Data serialization round-trip**
+    - **Validates: Requirements 9.3**
+  - [x] 2.3 Implement JSON serialization/deserialization utilities
+    - Create serialize and deserialize functions for all data types
+    - Handle Date objects and nested structures
+    - _Requirements: 9.1, 9.2, 9.3_
+  - [x] 2.4 Write unit tests for serialization edge cases
+    - Test malformed JSON handling
+    - Test missing field handling
+    - _Requirements: 9.4_
+
+- [ ] 3. Implement validation service
+  - [x] 3.1 Create application form validation logic
+    - Validate required fields (name, email, title, description, amount)
+    - Return specific error messages per field
+    - _Requirements: 1.3, 1.4, 2.4_
+  - [x] 3.2 Write property test for validation completeness
+    - **Property 2: Application validation completeness**
+    - **Validates: Requirements 1.3, 1.4**
+  - [x] 3.3 Write unit tests for validation edge cases
+    - Test empty strings, whitespace-only, invalid email formats
+    - _Requirements: 1.4_
+
+- [ ] 4. Implement budget service
+  - [x] 4.1 Create budget calculation functions
+    - Calculate remaining budget per category
+    - Calculate total allocated vs unallocated
+    - Detect threshold warnings (80% spent)
+    - _Requirements: 3.3, 7.3, 8.4_
+  - [x] 4.2 Write property test for budget allocation invariant
+    - **Property 3: Budget allocation invariant**
+    - **Validates: Requirements 3.3**
+  - [x] 4.3 Write property test for budget overallocation prevention
+    - **Property 4: Budget overallocation prevention**
+    - **Validates: Requirements 3.4**
+  - [x] 4.4 Implement category CRUD operations
+    - Create, read, update categories with budget tracking
+    - Validate allocations don't exceed yearly budget
+    - _Requirements: 3.1, 3.2, 3.4_
+  - [x] 4.5 Write property test for remaining budget calculation
+    - **Property 10: Remaining budget calculation**
+    - **Validates: Requirements 7.3**
+  - [x] 4.6 Write property test for budget threshold detection
+    - **Property 13: Budget threshold detection**
+    - **Validates: Requirements 8.4**
+
+- [x] 5. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 6. Implement ranking service
+  - [x] 6.1 Create criteria weight normalization function
+    - Normalize weights to sum to exactly 100
+    - _Requirements: 5.3_
+  - [x] 6.2 Write property test for criteria weight normalization
+    - **Property 6: Criteria weight normalization**
+    - **Validates: Requirements 5.3**
+  - [x] 6.3 Implement ranking score calculation
+    - Calculate weighted scores per criterion
+    - Sum to total score
+    - Sort applications by score descending
+    - _Requirements: 6.1, 6.2, 6.3_
+  - [x] 6.4 Write property test for ranking score calculation
+    - **Property 7: Ranking score calculation consistency**
+    - **Validates: Requirements 6.1, 6.2, 6.3**
+
+- [ ] 7. Implement application service
+  - [x] 7.1 Create application CRUD operations
+    - Create, read, update, list applications
+    - Generate reference numbers
+    - _Requirements: 1.2, 1.3, 2.5_
+  - [x] 7.2 Implement application filtering
+    - Filter by category, status, date range
+    - Combine filters with AND logic
+    - _Requirements: 8.3_
+  - [x] 7.3 Write property test for filter result correctness
+    - **Property 12: Filter result correctness**
+    - **Validates: Requirements 8.3**
+  - [x] 7.4 Implement approval/rejection workflow
+    - Update application status
+    - Deduct budget on approval
+    - Record decision reason
+    - _Requirements: 7.1, 7.2_
+  - [x] 7.5 Write property test for budget deduction on approval
+    - **Property 9: Budget deduction on approval**
+    - **Validates: Requirements 7.1**
+  - [x] 7.6 Write property test for budget warning threshold
+    - **Property 11: Budget warning threshold**
+    - **Validates: Requirements 7.4**
+
+- [x] 8. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 9. Implement AI service integration
+  - [x] 9.1 Create OpenAI API client wrapper
+    - Configure API key and model settings
+    - Implement retry logic and error handling
+    - _Requirements: 2.1, 4.1, 6.4_
+  - [x] 9.2 Implement conversational AI for applicants
+    - Process messages and extract form field updates
+    - Maintain conversation context
+    - _Requirements: 2.2, 2.3_
+  - [x] 9.3 Write property test for form field sync
+    - **Property 1: Form field sync consistency**
+    - **Validates: Requirements 1.2, 2.2**
+  - [x] 9.4 Implement AI categorization
+    - Analyze application and assign category
+    - Generate explanation and confidence score
+    - _Requirements: 4.1, 4.2, 4.3_
+  - [x] 9.5 Write property test for AI categorization output validity
+    - **Property 5: AI categorization output validity**
+    - **Validates: Requirements 4.1, 4.2, 4.3**
+  - [x] 9.6 Implement AI ranking with reasoning
+    - Score applications against criteria
+    - Generate reasoning for each score
+    - _Requirements: 6.4_
+  - [x] 9.7 Write property test for ranking reasoning completeness
+    - **Property 8: Ranking reasoning completeness**
+    - **Validates: Requirements 6.4**
+
+- [ ] 10. Implement backend API routes
+  - [x] 10.1 Create Express server with WebSocket support
+    - Set up REST endpoints and WebSocket server
+    - Configure CORS and middleware
+    - _Requirements: 2.1_
+  - [x] 10.2 Implement application endpoints
+    - POST /applications - create application
+    - GET /applications - list with filters
+    - GET /applications/:id - get single application
+    - PATCH /applications/:id - update/approve/reject
+    - _Requirements: 1.2, 1.3, 7.1, 7.2, 8.2_
+  - [x] 10.3 Implement category and budget endpoints
+    - GET/POST/PATCH /categories
+    - GET /budget/status
+    - _Requirements: 3.1, 3.2, 3.3_
+  - [x] 10.4 Implement ranking endpoints
+    - GET/POST /criteria
+    - POST /categories/:id/rank
+    - _Requirements: 5.1, 5.2, 6.1_
+  - [x] 10.5 Implement WebSocket chat handler
+    - Handle real-time AI conversation
+    - Stream responses to client
+    - _Requirements: 2.1, 2.2_
+
+- [x] 11. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 12. Implement frontend split-screen layout
+  - [x] 12.1 Create SplitScreenLayout component
+    - Responsive two-panel layout
+    - Support for applicant and admin modes
+    - _Requirements: 1.1_
+  - [x] 12.2 Create AICompanion chat panel component
+    - Message list display
+    - Text input with send button
+    - Voice mode toggle button
+    - _Requirements: 2.1, 2.3_
+  - [x] 12.3 Implement voice interaction with Web Speech API
+    - Speech-to-text for voice input
+    - Text-to-speech for AI responses
+    - Fallback to text mode on failure
+    - _Requirements: 2.1, 2.4_
+
+- [ ] 13. Implement applicant application form
+  - [x] 13.1 Create ApplicationForm component
+    - Fields: name, email, project title, description, amount
+    - Field highlighting on AI updates
+    - Validation error display
+    - _Requirements: 1.1, 1.4, 2.5_
+  - [x] 13.2 Implement form-AI sync logic
+    - Update form fields from AI responses
+    - Highlight recently updated fields
+    - _Requirements: 1.2, 2.2, 2.5_
+  - [x] 13.3 Implement form submission flow
+    - Validate and submit application
+    - Display reference number on success
+    - _Requirements: 1.3, 1.5_
+
+- [ ] 14. Implement admin dashboard
+  - [x] 14.1 Create Dashboard component with category cards
+    - Display budget used/remaining per category
+    - Show application counts
+    - Highlight threshold warnings
+    - _Requirements: 8.1, 8.4_
+  - [x] 14.2 Create application list with filters
+    - Filter by category and status
+    - Display recent applications
+    - _Requirements: 8.2, 8.3_
+  - [x] 14.3 Create application detail view
+    - Show AI categorization with explanation and confidence
+    - Display ranking breakdown
+    - Approve/reject buttons
+    - _Requirements: 4.4, 6.3, 7.1, 7.2_
+  - [x] 14.4 Implement category management UI
+    - Create/edit categories
+    - Set budget allocations
+    - Configure ranking criteria
+    - _Requirements: 3.2, 4.5, 5.1, 5.2_
+
+- [ ] 15. Wire up frontend to backend
+  - [x] 15.1 Create API client service
+    - REST API calls for CRUD operations
+    - WebSocket connection for chat
+    - _Requirements: 1.2, 2.1_
+  - [x] 15.2 Implement state management
+    - Application form state with AI sync
+    - Dashboard data fetching and caching
+    - _Requirements: 1.2, 8.1_
+  - [x] 15.3 Connect applicant flow end-to-end
+    - AI conversation → form population → submission
+    - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2_
+  - [x] 15.4 Connect admin flow end-to-end
+    - Dashboard → application review → approve/reject
+    - _Requirements: 7.1, 7.2, 8.1, 8.2_
+
+- [x] 16. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.

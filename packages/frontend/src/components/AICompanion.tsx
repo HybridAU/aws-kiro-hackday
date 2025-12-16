@@ -1,0 +1,256 @@
+import React, { useState, useEffect, useRef } from 'react';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  fieldUpdates?: { field: string; value: string }[];
+}
+
+interface AICompanionProps {
+  mode: 'voice' | 'text';
+  onFieldUpdate: (field: string, value: string) => void;
+  onModeChange: (mode: 'voice' | 'text') => void;
+  context: 'application' | 'admin';
+}
+
+export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICompanionProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<SpeechRecognitionInterface | null>(null);
+
+  useEffect(() => {
+    // Connect to WebSocket
+    const ws = new WebSocket(`ws://${window.location.hostname}:3001/ws`);
+
+    ws.onopen = () => {
+      setIsConnected(true);
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'message') {
+        const msg: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: data.data.message,
+          fieldUpdates: data.data.fieldUpdates,
+        };
+        setMessages((prev) => [...prev, msg]);
+
+        // Apply field updates
+        data.data.fieldUpdates?.forEach((update: { field: string; value: string }) => {
+          onFieldUpdate(update.field, update.value);
+        });
+
+        // Speak response if in voice mode
+        if (mode === 'voice' && 'speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(data.data.message);
+          speechSynthesis.speak(utterance);
+        }
+      }
+    };
+
+    ws.onclose = () => {
+      setIsConnected(false);
+    };
+
+    wsRef.current = ws;
+
+    return () => {
+      ws.close();
+    };
+  }, [onFieldUpdate, mode]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const sendMessage = (text: string) => {
+    if (!text.trim() || !wsRef.current) return;
+
+    const msg: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: text,
+    };
+    setMessages((prev) => [...prev, msg]);
+
+    wsRef.current.send(JSON.stringify({ type: 'chat', message: text }));
+    setInput('');
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
+  };
+
+  const toggleVoice = () => {
+    if (mode === 'voice') {
+      onModeChange('text');
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        setIsListening(false);
+      }
+    } else {
+      onModeChange('voice');
+      startListening();
+    }
+  };
+
+  const startListening = () => {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      alert('Voice input is not supported in this browser');
+      onModeChange('text');
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = event.results[0][0].transcript;
+      sendMessage(transcript);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      if (mode === 'voice') {
+        setTimeout(() => startListening(), 500);
+      }
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  };
+
+  return (
+    <div className="h-full flex flex-col p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">
+          {context === 'application' ? '💬 AI Assistant' : '🤖 Analysis Assistant'}
+        </h2>
+        <div className="flex items-center gap-2">
+          <span
+            className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}
+          />
+          <span className="text-sm text-dove-500">{isConnected ? 'Connected' : 'Disconnected'}</span>
+        </div>
+      </div>
+
+      <div className="flex-1 bg-dove-50 rounded-lg p-4 mb-4 overflow-y-auto">
+        {messages.length === 0 ? (
+          <p className="text-dove-500 text-center mt-8">
+            {context === 'application'
+              ? "Hi! I'm here to help you apply for a grant. Tell me about your project!"
+              : 'Select an application to get AI-powered analysis.'}
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                    msg.role === 'user'
+                      ? 'bg-dove-600 text-white'
+                      : 'bg-white border border-dove-200'
+                  }`}
+                >
+                  {msg.content}
+                  {msg.fieldUpdates && msg.fieldUpdates.length > 0 && (
+                    <div className="mt-2 text-xs opacity-75">
+                      Updated: {msg.fieldUpdates.map((u) => u.field).join(', ')}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={mode === 'voice' ? 'Listening...' : 'Type your message...'}
+          disabled={mode === 'voice' && isListening}
+          className="flex-1 border border-dove-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-dove-500"
+        />
+        <button
+          type="submit"
+          disabled={!input.trim()}
+          className="bg-dove-600 text-white px-4 py-2 rounded-lg hover:bg-dove-700 disabled:opacity-50"
+        >
+          Send
+        </button>
+        <button
+          type="button"
+          onClick={toggleVoice}
+          className={`px-4 py-2 rounded-lg ${
+            mode === 'voice'
+              ? 'bg-red-500 text-white'
+              : 'bg-dove-200 text-dove-700 hover:bg-dove-300'
+          }`}
+        >
+          {isListening ? '🔴' : '🎤'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// Web Speech API types
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  readonly length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  readonly transcript: string;
+  readonly confidence: number;
+}
+
+interface SpeechRecognitionInterface extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  start(): void;
+  stop(): void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognitionInterface;
+    webkitSpeechRecognition: new () => SpeechRecognitionInterface;
+  }
+}

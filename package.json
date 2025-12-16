@@ -1,0 +1,27 @@
+{
+  "name": "dove-grants",
+  "version": "1.0.0",
+  "description": "AI-powered grant management system with conversational interface",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "npm run dev -w @dove-grants/frontend",
+    "dev:backend": "npm run dev -w @dove-grants/backend",
+    "build": "npm run build -w @dove-grants/shared && npm run build -w @dove-grants/backend && npm run build -w @dove-grants/frontend",
+    "test": "npm run test -w @dove-grants/shared && npm run test -w @dove-grants/backend",
+    "lint": "eslint packages --ext .ts,.tsx",
+    "format": "prettier --write \"packages/**/*.{ts,tsx,json}\""
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.0"
+  }
+}
