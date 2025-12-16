@@ -43,9 +43,11 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
   useEffect(() => {
     const checkAIStatus = async () => {
       try {
-        const response = await fetch('/health');
-        const data = await response.json();
-        setIsAIConfigured(data.aiConfigured || false);
+        const response = await fetch('/api/budget/status');
+        // If we can reach the API, assume AI is configured (backend checks this)
+        if (response.ok) {
+          setIsAIConfigured(true);
+        }
       } catch (error) {
         console.error('Failed to check AI status:', error);
         setIsAIConfigured(false);
@@ -69,8 +71,9 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
   }, [context]);
 
   useEffect(() => {
-    // Connect to WebSocket only once
-    const ws = new WebSocket(`ws://${window.location.hostname}:3001/ws`);
+    // Connect to WebSocket through Vite proxy (same port as frontend)
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws`);
 
     ws.onopen = () => {
       setIsConnected(true);
