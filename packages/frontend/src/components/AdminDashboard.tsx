@@ -206,13 +206,24 @@ export function AdminDashboard() {
           {budgetStatus.categories.map((cat) => (
             <div
               key={cat.category.id}
-              className={`bg-white p-4 rounded-lg shadow ${
-                cat.thresholdReached ? 'border-2 border-yellow-400' : ''
-              }`}
+              onClick={() => setFilter({ 
+                ...filter, 
+                category: filter.category === cat.category.id ? '' : cat.category.id 
+              })}
+              className={`bg-white p-4 rounded-lg shadow cursor-pointer transition-all ${
+                filter.category === cat.category.id 
+                  ? 'ring-2 ring-dove-500 bg-dove-50' 
+                  : 'hover:shadow-md'
+              } ${cat.thresholdReached ? 'border-2 border-yellow-400' : ''}`}
             >
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold">{cat.category.name}</h3>
-                {cat.thresholdReached && <span className="text-yellow-500">⚠️</span>}
+                <div className="flex items-center gap-1">
+                  {filter.category === cat.category.id && (
+                    <span className="text-dove-500 text-xs">✓ filtered</span>
+                  )}
+                  {cat.thresholdReached && <span className="text-yellow-500">⚠️</span>}
+                </div>
               </div>
               <div className="text-sm text-dove-500 mb-2">
                 ${cat.category.spentBudget.toLocaleString()} / $
@@ -229,7 +240,7 @@ export function AdminDashboard() {
               <div className="flex justify-between text-sm">
                 <span>{cat.pendingApplications} pending</span>
                 <button
-                  onClick={() => handleRankCategory(cat.category.id)}
+                  onClick={(e) => { e.stopPropagation(); handleRankCategory(cat.category.id); }}
                   className="text-dove-600 hover:underline"
                 >
                   Rank
