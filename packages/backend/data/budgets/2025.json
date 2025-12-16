@@ -12,11 +12,11 @@
     },
     {
       "id": "sport",
-      "name": "Sport & Recreation",
-      "description": "Athletic programs, facilities, and community sports",
-      "allocatedBudget": 250000,
-      "isActive": true,
-      "spentBudget": 0
+      "name": "Sport",
+      "description": "Athletic programs",
+      "allocatedBudget": 20000,
+      "spentBudget": 0,
+      "isActive": true
     },
     {
       "id": "education",

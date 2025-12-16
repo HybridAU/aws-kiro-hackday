@@ -29,14 +29,7 @@ export function DevBanner() {
   }, []);
 
   if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed top-16 right-4 z-50 bg-yellow-400 text-black px-2 py-0.5 rounded text-xs font-medium shadow hover:bg-yellow-300"
-      >
-        🛠️
-      </button>
-    );
+    return null;
   }
 
   return (
