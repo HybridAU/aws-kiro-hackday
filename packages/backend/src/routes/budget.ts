@@ -7,9 +7,18 @@ import {
   listApplications,
 } from '../services/data';
 import {
+  loadBudgetConfigForYear,
+  saveBudgetConfigForYear,
+  createBudgetConfigForYear,
+  deleteBudgetConfigForYear,
+  getAvailableFiscalYears,
+  budgetConfigExistsForYear,
+} from '../services/multi-year-budget';
+import {
   validateBudgetAllocation,
   getBudgetStatus,
   getPendingApplications,
+  isValidFiscalYear,
 } from '@dove-grants/shared';
 
 const router = Router();
@@ -165,6 +174,167 @@ router.patch('/total', async (req, res) => {
 
     await saveBudgetConfig(config);
     res.json({ success: true, data: config });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: (error as Error).message },
+    });
+  }
+});
+
+// Multi-year budget endpoints
+
+// GET /api/budget/years - List available fiscal years
+router.get('/years', async (_req, res) => {
+  try {
+    const years = await getAvailableFiscalYears();
+    res.json({ success: true, data: years });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: (error as Error).message },
+    });
+  }
+});
+
+// GET /api/budget/config/:year - Get budget config for specific year
+router.get('/config/:year', async (req, res) => {
+  try {
+    const year = parseInt(req.params.year, 10);
+    
+    if (!isValidFiscalYear(year)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_YEAR', message: 'Invalid fiscal year' },
+      });
+    }
+
+    const config = await loadBudgetConfigForYear(year);
+    
+    if (!config) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Budget configuration not found for this year' },
+      });
+    }
+
+    res.json({ success: true, data: config });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: (error as Error).message },
+    });
+  }
+});
+
+// PUT /api/budget/config/:year - Update budget config for year
+router.put('/config/:year', async (req, res) => {
+  try {
+    const year = parseInt(req.params.year, 10);
+    
+    if (!isValidFiscalYear(year)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_YEAR', message: 'Invalid fiscal year' },
+      });
+    }
+
+    const { totalBudget, categories } = req.body;
+
+    if (typeof totalBudget !== 'number' || totalBudget < 0) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_BUDGET', message: 'Total budget must be a non-negative number' },
+      });
+    }
+
+    if (!Array.isArray(categories)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_CATEGORIES', message: 'Categories must be an array' },
+      });
+    }
+
+    // Validate budget allocation
+    const validation = validateBudgetAllocation(totalBudget, categories);
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'BUDGET_EXCEEDED', message: validation.error },
+      });
+    }
+
+    const config = {
+      fiscalYear: year,
+      totalBudget,
+      categories,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    await saveBudgetConfigForYear(year, config);
+    res.json({ success: true, data: config });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: (error as Error).message },
+    });
+  }
+});
+
+// POST /api/budget/config/:year - Create new budget config for year
+router.post('/config/:year', async (req, res) => {
+  try {
+    const year = parseInt(req.params.year, 10);
+    
+    if (!isValidFiscalYear(year)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_YEAR', message: 'Invalid fiscal year' },
+      });
+    }
+
+    // Check if config already exists
+    const exists = await budgetConfigExistsForYear(year);
+    if (exists) {
+      return res.status(409).json({
+        success: false,
+        error: { code: 'ALREADY_EXISTS', message: 'Budget configuration already exists for this year' },
+      });
+    }
+
+    const config = await createBudgetConfigForYear(year);
+    res.status(201).json({ success: true, data: config });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: (error as Error).message },
+    });
+  }
+});
+
+// DELETE /api/budget/config/:year - Delete budget config for year
+router.delete('/config/:year', async (req, res) => {
+  try {
+    const year = parseInt(req.params.year, 10);
+    
+    if (!isValidFiscalYear(year)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_YEAR', message: 'Invalid fiscal year' },
+      });
+    }
+
+    const deleted = await deleteBudgetConfigForYear(year);
+    
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Budget configuration not found for this year' },
+      });
+    }
+
+    res.json({ success: true, data: { deleted: true, year } });
   } catch (error) {
     res.status(500).json({
       success: false,

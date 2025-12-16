@@ -104,6 +104,8 @@ export function deserializeBudgetConfig(json: string): BudgetConfig {
       throw new SerializationError('Missing or invalid fiscalYear', 'fiscalYear');
     }
 
+    const now = new Date();
+    
     return {
       fiscalYear: obj.fiscalYear,
       totalBudget: Number(obj.totalBudget) || 0,
@@ -120,6 +122,8 @@ export function deserializeBudgetConfig(json: string): BudgetConfig {
             };
           })
         : [],
+      createdAt: obj.createdAt ? new Date(obj.createdAt) : now,
+      updatedAt: obj.updatedAt ? new Date(obj.updatedAt) : now,
     };
   } catch (error) {
     if (error instanceof SerializationError) throw error;

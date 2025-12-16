@@ -1,0 +1,48 @@
+{
+  "fiscalYear": 2025,
+  "totalBudget": 10000000,
+  "categories": [
+    {
+      "id": "medical",
+      "name": "Medical",
+      "description": "Healthcare projects",
+      "allocatedBudget": 30000,
+      "spentBudget": 1000000,
+      "isActive": true
+    },
+    {
+      "id": "sport",
+      "name": "Sport",
+      "description": "Athletic programs",
+      "allocatedBudget": 20000,
+      "spentBudget": 0,
+      "isActive": true
+    },
+    {
+      "id": "education",
+      "name": "Education",
+      "description": "Educational initiatives",
+      "allocatedBudget": 25000,
+      "spentBudget": 0,
+      "isActive": true
+    },
+    {
+      "id": "arts",
+      "name": "Arts",
+      "description": "Cultural and artistic projects",
+      "allocatedBudget": 15000,
+      "spentBudget": 0,
+      "isActive": true
+    },
+    {
+      "id": "community",
+      "name": "Community",
+      "description": "Community development",
+      "allocatedBudget": 10000,
+      "spentBudget": 0,
+      "isActive": true
+    }
+  ],
+  "createdAt": "2025-12-16T05:02:46.023Z",
+  "updatedAt": "2025-12-16T05:02:46.023Z"
+}

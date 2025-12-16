@@ -18,7 +18,7 @@ import {
   rankApplications,
   calculateTotalScore,
 } from '@dove-grants/shared';
-import type { ApplicationFilters, ApplicationStatus, FileAttachment } from '@dove-grants/shared';
+import type { ApplicationFilters, ApplicationStatus, FileAttachment, CriterionScore } from '@dove-grants/shared';
 
 const router = Router();
 
@@ -298,7 +298,7 @@ router.post('/rank/:categoryId', async (req, res) => {
     }
 
     const criteria = await loadCriteria();
-    const scoredApps = new Map<string, { criterionId: string; criterionName: string; score: number; weight: number; weightedScore: number; reasoning: string }[]>();
+    const scoredApps = new Map<string, CriterionScore[]>();
 
     // Score each application
     for (const app of applications) {

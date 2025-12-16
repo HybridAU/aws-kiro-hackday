@@ -4,7 +4,7 @@
 
 | Person | Current Task |
 |--------|--------------|
-| Michael | add log in to the admin dashboard |
+| Michael | Update the admin dashboard to edit alocations |
 | Jerome | fix audio recorder |
 | Sam | Admin console - ask for feedback |
 

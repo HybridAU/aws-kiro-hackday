@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { BudgetEditor } from './BudgetEditor';
 
 // Format large numbers compactly (e.g., $1.2M, $850K)
 function formatCurrency(amount: number): string {
@@ -80,6 +81,7 @@ export function AdminDashboard() {
   const [previewFile, setPreviewFile] = useState<{ appId: string; file: FileAttachment } | null>(null);
   const [feedbackApp, setFeedbackApp] = useState<Application | null>(null);
   const [feedbackComments, setFeedbackComments] = useState('');
+  const [showBudgetEditor, setShowBudgetEditor] = useState(false);
   const menuButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   const fetchData = async () => {
@@ -196,7 +198,17 @@ export function AdminDashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      <h2 className="text-lg font-semibold">📊 Admin Dashboard</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">📊 Admin Dashboard</h2>
+        {budgetStatus && (
+          <button
+            onClick={() => setShowBudgetEditor(true)}
+            className="bg-dove-600 text-white px-4 py-2 rounded hover:bg-dove-700 flex items-center gap-2"
+          >
+            💰 Edit Budget
+          </button>
+        )}
+      </div>
 
       {/* Budget Overview */}
       {budgetStatus && (
@@ -752,6 +764,13 @@ export function AdminDashboard() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Budget Editor Modal/Overlay */}
+      {showBudgetEditor && (
+        <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
+          <BudgetEditor onClose={() => setShowBudgetEditor(false)} />
         </div>
       )}
     </div>

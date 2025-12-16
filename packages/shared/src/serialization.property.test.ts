@@ -70,6 +70,8 @@ const budgetConfigArb: fc.Arbitrary<BudgetConfig> = fc.record({
   fiscalYear: fc.integer({ min: 2020, max: 2030 }),
   totalBudget: fc.float({ min: 0, max: 100000000, noNaN: true }),
   categories: fc.array(categoryArb, { minLength: 0, maxLength: 10 }),
+  createdAt: fc.date(),
+  updatedAt: fc.date(),
 });
 
 describe('Serialization Round-Trip Properties', () => {
