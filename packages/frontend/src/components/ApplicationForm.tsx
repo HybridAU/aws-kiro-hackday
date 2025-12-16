@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 
 interface ApplicationFormData {
   applicantName: string;
@@ -6,6 +6,12 @@ interface ApplicationFormData {
   projectTitle: string;
   projectDescription: string;
   requestedAmount: number | '';
+}
+
+interface FileInfo {
+  name: string;
+  size: number;
+  file: File;
 }
 
 interface ApplicationFormProps {
@@ -23,8 +29,37 @@ export function ApplicationForm({
 }: ApplicationFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [referenceNumber, setReferenceNumber] = useState('');
+  const [applicationId, setApplicationId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [files, setFiles] = useState<FileInfo[]>([]);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files;
+    if (!selectedFiles) return;
+    
+    const newFiles: FileInfo[] = [];
+    for (let i = 0; i < selectedFiles.length; i++) {
+      newFiles.push({
+        name: selectedFiles[i].name,
+        size: selectedFiles[i].size,
+        file: selectedFiles[i],
+      });
+    }
+    setFiles([...files, ...newFiles]);
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(files.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +81,7 @@ export function ApplicationForm({
 
     setIsSubmitting(true);
     try {
+      // Create application
       const response = await fetch('/api/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -57,7 +93,24 @@ export function ApplicationForm({
 
       const result = await response.json();
       if (result.success) {
+        const appId = result.data.id;
+        setApplicationId(appId);
         setReferenceNumber(result.data.referenceNumber);
+
+        // Upload files if any
+        if (files.length > 0) {
+          setUploadingFiles(true);
+          for (const fileInfo of files) {
+            const formDataUpload = new FormData();
+            formDataUpload.append('file', fileInfo.file);
+            await fetch(`/api/applications/${appId}/files`, {
+              method: 'POST',
+              body: formDataUpload,
+            });
+          }
+          setUploadingFiles(false);
+        }
+
         setSubmitted(true);
         onSubmit();
       } else {
@@ -164,6 +217,41 @@ export function ApplicationForm({
           )}
         </div>
 
+        {/* File Attachments */}
+        <div>
+          <label className="block text-sm font-medium text-dove-700 mb-1">Attachments (optional)</label>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            multiple
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="border border-dashed border-dove-300 rounded px-4 py-2 text-dove-600 hover:bg-dove-50 w-full"
+          >
+            📎 Add Files
+          </button>
+          {files.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {files.map((file, index) => (
+                <div key={index} className="flex items-center justify-between bg-dove-50 rounded px-3 py-1 text-sm">
+                  <span className="truncate">{file.name} ({formatFileSize(file.size)})</span>
+                  <button
+                    type="button"
+                    onClick={() => removeFile(index)}
+                    className="text-red-500 hover:text-red-700 ml-2"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {errors.submit && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
             {errors.submit}
@@ -172,10 +260,10 @@ export function ApplicationForm({
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || uploadingFiles}
           className="w-full bg-dove-600 text-white py-2 rounded hover:bg-dove-700 disabled:opacity-50"
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Application'}
+          {uploadingFiles ? 'Uploading files...' : isSubmitting ? 'Submitting...' : 'Submit Application'}
         </button>
       </form>
     </div>

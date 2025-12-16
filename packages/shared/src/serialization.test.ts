@@ -104,6 +104,7 @@ describe('Serialization Edge Cases', () => {
         decision: null,
         decisionReason: null,
         decidedAt: null,
+        attachments: [],
       };
 
       const serialized = serializeApplication(app);

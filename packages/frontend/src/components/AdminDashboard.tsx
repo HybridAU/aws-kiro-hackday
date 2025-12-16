@@ -23,6 +23,13 @@ interface BudgetStatus {
   categories: CategoryStatus[];
 }
 
+interface FileAttachment {
+  id: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+}
+
 interface Application {
   id: string;
   referenceNumber: string;
@@ -35,6 +42,7 @@ interface Application {
   categoryId: string | null;
   categorizationConfidence: number | null;
   rankingScore: number | null;
+  attachments?: FileAttachment[];
 }
 
 interface EditForm {
@@ -54,6 +62,9 @@ export function AdminDashboard() {
   const [editForm, setEditForm] = useState<EditForm | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const [viewingFiles, setViewingFiles] = useState<Application | null>(null);
+  const [viewingApp, setViewingApp] = useState<Application | null>(null);
+  const [previewFile, setPreviewFile] = useState<{ appId: string; file: FileAttachment } | null>(null);
   const menuButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   const fetchData = async () => {
@@ -274,7 +285,11 @@ export function AdminDashboard() {
           </thead>
           <tbody>
             {filteredApps.map((app) => (
-              <tr key={app.id} className="border-t border-dove-100 hover:bg-dove-50">
+              <tr 
+                key={app.id} 
+                className="border-t border-dove-100 hover:bg-dove-50 cursor-pointer"
+                onClick={() => setViewingApp(app)}
+              >
                 <td className="px-3 py-2 font-mono text-xs">{app.referenceNumber}</td>
                 <td className="px-3 py-2 text-sm truncate max-w-[120px]">{app.applicantName}</td>
                 <td className="px-3 py-2 text-sm truncate max-w-[150px]">{app.projectTitle}</td>
@@ -295,7 +310,7 @@ export function AdminDashboard() {
                 <td className="px-3 py-2 text-center text-sm">
                   {app.rankingScore !== null ? app.rankingScore.toFixed(1) : '-'}
                 </td>
-                <td className="px-3 py-2 text-center">
+                <td className="px-3 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                   <div className="flex gap-1 justify-center items-center">
                     {app.status !== 'approved' && app.status !== 'rejected' && (
                       <>
@@ -363,6 +378,12 @@ export function AdminDashboard() {
                     className="block w-full text-left px-4 py-2 text-sm hover:bg-dove-50"
                   >
                     ✏️ Edit
+                  </button>
+                  <button
+                    onClick={() => { setViewingFiles(app); setMenuOpen(null); }}
+                    className="block w-full text-left px-4 py-2 text-sm hover:bg-dove-50"
+                  >
+                    📎 Files {app.attachments?.length ? `(${app.attachments.length})` : ''}
                   </button>
                   <button
                     onClick={() => handleDelete(app.id)}
@@ -442,6 +463,191 @@ export function AdminDashboard() {
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Files Modal */}
+      {viewingFiles && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">
+              📎 Files - {viewingFiles.projectTitle}
+            </h3>
+            {viewingFiles.attachments && viewingFiles.attachments.length > 0 ? (
+              <div className="space-y-2">
+                {viewingFiles.attachments.map((file) => (
+                  <div key={file.id} className="flex items-center justify-between bg-dove-50 rounded px-3 py-2">
+                    <div className="truncate flex-1">
+                      <span className="text-sm">{file.originalName}</span>
+                      <span className="text-xs text-dove-500 ml-2">
+                        ({(file.size / 1024).toFixed(1)} KB)
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      {(file.mimeType.startsWith('image/') || file.mimeType === 'application/pdf') && (
+                        <button
+                          onClick={() => setPreviewFile({ appId: viewingFiles.id, file })}
+                          className="text-dove-600 hover:text-dove-800 text-sm"
+                        >
+                          👁️
+                        </button>
+                      )}
+                      <a
+                        href={`/api/applications/${viewingFiles.id}/files/${file.id}`}
+                        download={file.originalName}
+                        className="text-dove-600 hover:text-dove-800 text-sm"
+                      >
+                        ⬇️
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-dove-500 text-center py-4">No files attached</p>
+            )}
+            <button
+              onClick={() => setViewingFiles(null)}
+              className="w-full mt-4 border border-dove-300 py-2 rounded hover:bg-dove-50"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Application Detail Modal */}
+      {viewingApp && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-lg font-semibold">{viewingApp.projectTitle}</h3>
+                <p className="text-sm text-dove-500 font-mono">{viewingApp.referenceNumber}</p>
+              </div>
+              <span className={`px-2 py-1 rounded text-xs ${
+                viewingApp.status === 'approved' ? 'bg-green-100 text-green-700' :
+                viewingApp.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                'bg-dove-100 text-dove-700'
+              }`}>
+                {viewingApp.status}
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="text-xs text-dove-500">Applicant</label>
+                <p className="font-medium">{viewingApp.applicantName}</p>
+              </div>
+              <div>
+                <label className="text-xs text-dove-500">Email</label>
+                <p className="font-medium">{viewingApp.applicantEmail}</p>
+              </div>
+              <div>
+                <label className="text-xs text-dove-500">Requested Amount</label>
+                <p className="font-medium text-lg">${viewingApp.requestedAmount.toLocaleString()}</p>
+              </div>
+              <div>
+                <label className="text-xs text-dove-500">Score</label>
+                <p className="font-medium">{viewingApp.rankingScore?.toFixed(1) ?? '-'}</p>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="text-xs text-dove-500">Description</label>
+              <p className="text-sm bg-dove-50 rounded p-3 mt-1">{viewingApp.projectDescription}</p>
+            </div>
+
+            {/* Attachments */}
+            {viewingApp.attachments && viewingApp.attachments.length > 0 && (
+              <div className="mb-4">
+                <label className="text-xs text-dove-500">Attachments ({viewingApp.attachments.length})</label>
+                <div className="mt-1 space-y-1">
+                  {viewingApp.attachments.map((file) => (
+                    <div key={file.id} className="flex items-center justify-between bg-dove-50 rounded px-3 py-2">
+                      <span className="text-sm truncate">{file.originalName}</span>
+                      <div className="flex gap-2">
+                        {(file.mimeType.startsWith('image/') || file.mimeType === 'application/pdf') && (
+                          <button
+                            onClick={() => setPreviewFile({ appId: viewingApp.id, file })}
+                            className="text-dove-600 hover:text-dove-800 text-sm"
+                          >
+                            👁️ Preview
+                          </button>
+                        )}
+                        <a
+                          href={`/api/applications/${viewingApp.id}/files/${file.id}`}
+                          download={file.originalName}
+                          className="text-dove-600 hover:text-dove-800 text-sm"
+                        >
+                          ⬇️ Download
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              {viewingApp.status !== 'approved' && viewingApp.status !== 'rejected' && (
+                <>
+                  <button
+                    onClick={() => { handleAction(viewingApp.id, 'approve'); setViewingApp(null); }}
+                    className="flex-1 bg-green-500 text-white py-2 rounded hover:bg-green-600"
+                  >
+                    ✓ Approve
+                  </button>
+                  <button
+                    onClick={() => { handleAction(viewingApp.id, 'reject'); setViewingApp(null); }}
+                    className="flex-1 bg-red-500 text-white py-2 rounded hover:bg-red-600"
+                  >
+                    ✗ Reject
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => setViewingApp(null)}
+                className="flex-1 border border-dove-300 py-2 rounded hover:bg-dove-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* File Preview Modal */}
+      {previewFile && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-lg shadow-xl p-4 w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-semibold">{previewFile.file.originalName}</h3>
+              <button
+                onClick={() => setPreviewFile(null)}
+                className="text-dove-500 hover:text-dove-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto bg-dove-100 rounded flex items-center justify-center min-h-[400px]">
+              {previewFile.file.mimeType.startsWith('image/') ? (
+                <img
+                  src={`/api/applications/${previewFile.appId}/files/${previewFile.file.id}`}
+                  alt={previewFile.file.originalName}
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : previewFile.file.mimeType === 'application/pdf' ? (
+                <iframe
+                  src={`/api/applications/${previewFile.appId}/files/${previewFile.file.id}`}
+                  className="w-full h-full min-h-[500px]"
+                  title={previewFile.file.originalName}
+                />
+              ) : (
+                <p className="text-dove-500">Preview not available</p>
+              )}
             </div>
           </div>
         </div>

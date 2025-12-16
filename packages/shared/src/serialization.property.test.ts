@@ -51,6 +51,7 @@ const applicationArb: fc.Arbitrary<Application> = fc.record({
   decision: fc.option(fc.constantFrom('approved' as const, 'rejected' as const), { nil: null }),
   decisionReason: fc.option(fc.string(), { nil: null }),
   decidedAt: fc.option(fc.date(), { nil: null }),
+  attachments: fc.constant([]),
 });
 
 const categoryArb: fc.Arbitrary<Category> = fc.record({

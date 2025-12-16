@@ -53,6 +53,7 @@ export function deserializeApplication(json: string): Application {
       decision: obj.decision ?? null,
       decisionReason: obj.decisionReason ?? null,
       decidedAt: obj.decidedAt ? new Date(obj.decidedAt) : null,
+      attachments: obj.attachments ?? [],
     };
   } catch (error) {
     if (error instanceof SerializationError) throw error;

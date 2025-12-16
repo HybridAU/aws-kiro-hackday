@@ -34,6 +34,7 @@ const applicationArb: fc.Arbitrary<Application> = fc.record({
   decision: fc.constant(null),
   decisionReason: fc.constant(null),
   decidedAt: fc.constant(null),
+  attachments: fc.constant([]),
 });
 
 describe('Property 12: Filter result correctness', () => {

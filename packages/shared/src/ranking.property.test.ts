@@ -95,6 +95,7 @@ describe('Property 7: Ranking score calculation consistency', () => {
             decision: fc.constant(null),
             decisionReason: fc.constant(null),
             decidedAt: fc.constant(null),
+            attachments: fc.constant([]),
           }),
           { minLength: 2, maxLength: 10 }
         ),

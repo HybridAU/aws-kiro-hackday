@@ -5,7 +5,7 @@
 | Person | Current Task |
 |--------|--------------|
 | Michael | add log in to the admin dashboard |
-| Jerome | fix audio recorder |
+| Jerome | adding file attachments to applications |
 | Sam | TBD |
 
 ## Notes
