@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 
 interface ApplicationFormData {
   applicantName: string;
@@ -12,14 +12,6 @@ interface FileInfo {
   name: string;
   size: number;
   file: File;
-}
-
-interface PreviousApplication {
-  id: string;
-  referenceNumber: string;
-  projectTitle: string;
-  status: string;
-  submittedAt: string;
 }
 
 interface ApplicationFormProps {
@@ -41,32 +33,7 @@ export function ApplicationForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
-  const [previousApplications, setPreviousApplications] = useState<PreviousApplication[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    fetchPreviousApplications();
-  }, [submitted]);
-
-  const fetchPreviousApplications = async () => {
-    try {
-      const response = await fetch('/api/applications');
-      const result = await response.json();
-      if (result.success) {
-        setPreviousApplications(
-          result.data.map((app: { id: string; referenceNumber: string; projectTitle: string; status: string; submittedAt: string }) => ({
-            id: app.id,
-            referenceNumber: app.referenceNumber,
-            projectTitle: app.projectTitle,
-            status: app.status,
-            submittedAt: app.submittedAt,
-          }))
-        );
-      }
-    } catch {
-      // Silently fail - not critical
-    }
-  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
@@ -297,39 +264,6 @@ export function ApplicationForm({
           {uploadingFiles ? 'Uploading files...' : isSubmitting ? 'Submitting...' : 'Submit Application'}
         </button>
       </form>
-
-      {/* Previous Applications */}
-      {previousApplications.length > 0 && (
-        <div className="mt-6 bg-white p-6 rounded-lg shadow">
-          <h3 className="text-md font-semibold text-dove-700 mb-3">📋 Your Previous Applications</h3>
-          <div className="space-y-2">
-            {previousApplications.map((app) => (
-              <div
-                key={app.id}
-                className="flex items-center justify-between bg-dove-50 rounded px-4 py-3 text-sm"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-dove-800 truncate">{app.projectTitle}</p>
-                  <p className="text-dove-500 text-xs">
-                    {app.referenceNumber} • {new Date(app.submittedAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <span
-                  className={`ml-3 px-2 py-1 rounded text-xs font-medium ${
-                    app.status === 'approved'
-                      ? 'bg-green-100 text-green-700'
-                      : app.status === 'rejected'
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-yellow-100 text-yellow-700'
-                  }`}
-                >
-                  {app.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

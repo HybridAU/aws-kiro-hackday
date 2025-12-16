@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Application {
   id: string;
@@ -15,31 +15,38 @@ interface Application {
 }
 
 export function MyApplications() {
-  const [email, setEmail] = useState('');
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [emailFilter, setEmailFilter] = useState('');
+  const [allApplications, setAllApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editingApp, setEditingApp] = useState<Application | null>(null);
   const [editForm, setEditForm] = useState({ projectDescription: '' });
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) return;
+  // Load all applications on mount
+  useEffect(() => {
+    fetchApplications();
+  }, []);
 
+  const fetchApplications = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/applications?email=${encodeURIComponent(email)}`);
+      const response = await fetch('/api/applications');
       const data = await response.json();
       if (data.success) {
-        setApplications(data.data);
+        setAllApplications(data.data);
       }
     } catch (error) {
       console.error('Failed to fetch applications:', error);
     } finally {
       setLoading(false);
-      setSearched(true);
     }
   };
+
+  // Filter applications by email (case-insensitive partial match)
+  const filteredApplications = emailFilter.trim()
+    ? allApplications.filter((app) =>
+        app.applicantEmail.toLowerCase().includes(emailFilter.toLowerCase())
+      )
+    : allApplications;
 
   const handleRespond = (app: Application) => {
     setEditingApp(app);
@@ -61,7 +68,7 @@ export function MyApplications() {
 
       if (response.ok) {
         // Refresh the list
-        handleSearch({ preventDefault: () => {} } as React.FormEvent);
+        fetchApplications();
         setEditingApp(null);
       }
     } catch (error) {
@@ -93,38 +100,57 @@ export function MyApplications() {
     <div className="p-6 max-w-4xl mx-auto">
       <h2 className="text-xl font-semibold mb-6">📋 My Applications</h2>
 
-      {/* Email Search */}
-      <form onSubmit={handleSearch} className="mb-6">
+      {/* Email Filter */}
+      <div className="mb-6">
         <div className="flex gap-2">
           <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email address"
+            type="text"
+            value={emailFilter}
+            onChange={(e) => setEmailFilter(e.target.value)}
+            placeholder="Filter by email address..."
             className="flex-1 border border-dove-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-dove-500"
-            required
           />
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-dove-600 text-white px-6 py-2 rounded-lg hover:bg-dove-700 disabled:opacity-50"
-          >
-            {loading ? 'Searching...' : 'Find My Applications'}
-          </button>
+          {emailFilter && (
+            <button
+              onClick={() => setEmailFilter('')}
+              className="px-4 py-2 text-dove-500 hover:text-dove-700"
+            >
+              Clear
+            </button>
+          )}
         </div>
-      </form>
+        <p className="text-sm text-dove-500 mt-1">
+          {filteredApplications.length} of {allApplications.length} applications
+        </p>
+      </div>
 
-      {/* Results */}
-      {searched && applications.length === 0 && (
+      {/* Loading State */}
+      {loading && (
         <div className="text-center py-12 text-dove-500">
-          <p>No applications found for this email address.</p>
-          <p className="text-sm mt-2">Make sure you're using the same email you applied with.</p>
+          <p>Loading applications...</p>
         </div>
       )}
 
-      {applications.length > 0 && (
+      {/* Empty State */}
+      {!loading && filteredApplications.length === 0 && (
+        <div className="text-center py-12 text-dove-500">
+          {emailFilter ? (
+            <>
+              <p>No applications found matching "{emailFilter}"</p>
+              <p className="text-sm mt-2">Try a different email or clear the filter.</p>
+            </>
+          ) : (
+            <>
+              <p>No applications yet.</p>
+              <p className="text-sm mt-2">Submit a grant application to see it here.</p>
+            </>
+          )}
+        </div>
+      )}
+
+      {!loading && filteredApplications.length > 0 && (
         <div className="space-y-4">
-          {applications.map((app) => (
+          {filteredApplications.map((app) => (
             <div key={app.id} className="bg-white rounded-lg shadow p-4 border border-dove-200">
               <div className="flex justify-between items-start mb-3">
                 <div>
