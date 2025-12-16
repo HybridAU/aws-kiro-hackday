@@ -7,7 +7,7 @@ interface SplitScreenLayoutProps {
 }
 
 export function SplitScreenLayout({ leftPanel, rightPanel }: SplitScreenLayoutProps) {
-  const [leftWidth, setLeftWidth] = useState(50); // percentage
+  const [leftWidth, setLeftWidth] = useState(35); // percentage
   const [isDragging, setIsDragging] = useState(false);
 
   const handleMouseDown = useCallback(() => {
