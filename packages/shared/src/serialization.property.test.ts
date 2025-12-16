@@ -53,8 +53,7 @@ const applicationArb: fc.Arbitrary<Application> = fc.record({
   decisionReason: fc.option(fc.string(), { nil: null }),
   decidedAt: fc.option(fc.date(), { nil: null }),
   attachments: fc.constant([]),
-  feedbackComments: fc.option(fc.string(), { nil: null }),
-  feedbackRequestedAt: fc.option(fc.date(), { nil: null }),
+  feedbackHistory: fc.constant([]),
 });
 
 const categoryArb: fc.Arbitrary<Category> = fc.record({

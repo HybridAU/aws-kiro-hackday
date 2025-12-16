@@ -8,6 +8,14 @@ export type ApplicationStatus =
   | 'approved'
   | 'rejected';
 
+// Feedback note for conversation history between admin and applicant
+export interface FeedbackNote {
+  id: string;
+  author: 'admin' | 'applicant';
+  content: string;
+  timestamp: Date;
+}
+
 // File attachment (base64 encoded for hackathon simplicity)
 export interface FileAttachment {
   id: string;
@@ -39,8 +47,7 @@ export interface Application {
   decisionReason: string | null;
   decidedAt: Date | null;
   attachments: FileAttachment[];
-  feedbackComments: string | null;
-  feedbackRequestedAt: Date | null;
+  feedbackHistory: FeedbackNote[];
 }
 
 // Budget category

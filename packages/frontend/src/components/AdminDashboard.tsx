@@ -42,6 +42,13 @@ interface FileAttachment {
   size: number;
 }
 
+interface FeedbackNote {
+  id: string;
+  author: 'admin' | 'applicant';
+  content: string;
+  timestamp: string;
+}
+
 interface Application {
   id: string;
   referenceNumber: string;
@@ -55,8 +62,7 @@ interface Application {
   categorizationConfidence: number | null;
   rankingScore: number | null;
   attachments?: FileAttachment[];
-  feedbackComments?: string | null;
-  feedbackRequestedAt?: string | null;
+  feedbackHistory?: FeedbackNote[];
 }
 
 interface EditForm {
@@ -616,17 +622,31 @@ export function AdminDashboard() {
               <p className="text-sm bg-dove-50 rounded p-3 mt-1">{viewingApp.projectDescription}</p>
             </div>
 
-            {/* Feedback Comments */}
-            {viewingApp.feedbackComments && (
+            {/* Feedback History */}
+            {viewingApp.feedbackHistory && viewingApp.feedbackHistory.length > 0 && (
               <div className="mb-4">
-                <label className="text-xs text-dove-500">Feedback Requested</label>
-                <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mt-1">
-                  <p className="text-sm text-yellow-800">{viewingApp.feedbackComments}</p>
-                  {viewingApp.feedbackRequestedAt && (
-                    <p className="text-xs text-yellow-600 mt-2">
-                      Requested on {new Date(viewingApp.feedbackRequestedAt).toLocaleDateString()}
-                    </p>
-                  )}
+                <label className="text-xs text-dove-500">Feedback History</label>
+                <div className="mt-1 space-y-2 max-h-48 overflow-y-auto">
+                  {viewingApp.feedbackHistory.map((note) => (
+                    <div
+                      key={note.id}
+                      className={`p-2 rounded text-sm ${
+                        note.author === 'admin'
+                          ? 'bg-yellow-50 border-l-2 border-yellow-400'
+                          : 'bg-blue-50 border-l-2 border-blue-400'
+                      }`}
+                    >
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-medium">
+                          {note.author === 'admin' ? '🔐 Admin' : '👤 Applicant'}
+                        </span>
+                        <span className="text-dove-400">
+                          {new Date(note.timestamp).toLocaleDateString()} {new Date(note.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p>{note.content}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
 
+interface FeedbackNote {
+  id: string;
+  author: 'admin' | 'applicant';
+  content: string;
+  timestamp: string;
+}
+
 interface Application {
   id: string;
   referenceNumber: string;
@@ -10,18 +17,16 @@ interface Application {
   requestedAmount: number;
   status: string;
   submittedAt: string;
-  feedbackComments?: string | null;
-  feedbackRequestedAt?: string | null;
+  feedbackHistory?: FeedbackNote[];
 }
 
 export function MyApplications() {
   const [emailFilter, setEmailFilter] = useState('');
   const [allApplications, setAllApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingApp, setEditingApp] = useState<Application | null>(null);
-  const [editForm, setEditForm] = useState({ projectDescription: '' });
+  const [respondingApp, setRespondingApp] = useState<Application | null>(null);
+  const [responseText, setResponseText] = useState('');
 
-  // Load all applications on mount
   useEffect(() => {
     fetchApplications();
   }, []);
@@ -41,7 +46,6 @@ export function MyApplications() {
     }
   };
 
-  // Filter applications by email (case-insensitive partial match)
   const filteredApplications = emailFilter.trim()
     ? allApplications.filter((app) =>
         app.applicantEmail.toLowerCase().includes(emailFilter.toLowerCase())
@@ -49,30 +53,30 @@ export function MyApplications() {
     : allApplications;
 
   const handleRespond = (app: Application) => {
-    setEditingApp(app);
-    setEditForm({ projectDescription: app.projectDescription });
+    setRespondingApp(app);
+    setResponseText('');
   };
 
   const handleSubmitResponse = async () => {
-    if (!editingApp) return;
+    if (!respondingApp || !responseText.trim()) return;
 
     try {
-      const response = await fetch(`/api/applications/${editingApp.id}`, {
+      const response = await fetch(`/api/applications/${respondingApp.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          projectDescription: editForm.projectDescription,
-          status: 'submitted', // Reset to submitted after responding
+          action: 'respond_to_feedback',
+          response: responseText,
         }),
       });
 
       if (response.ok) {
-        // Refresh the list
         fetchApplications();
-        setEditingApp(null);
+        setRespondingApp(null);
+        setResponseText('');
       }
     } catch (error) {
-      console.error('Failed to update application:', error);
+      console.error('Failed to submit response:', error);
     }
   };
 
@@ -94,6 +98,11 @@ export function MyApplications() {
       under_review: 'Under Review',
     };
     return labels[status] || status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -124,14 +133,12 @@ export function MyApplications() {
         </p>
       </div>
 
-      {/* Loading State */}
       {loading && (
         <div className="text-center py-12 text-dove-500">
           <p>Loading applications...</p>
         </div>
       )}
 
-      {/* Empty State */}
       {!loading && filteredApplications.length === 0 && (
         <div className="text-center py-12 text-dove-500">
           {emailFilter ? (
@@ -175,22 +182,45 @@ export function MyApplications() {
 
               <p className="text-sm text-dove-600 mb-3 line-clamp-2">{app.projectDescription}</p>
 
-              {/* Feedback Section */}
-              {app.status === 'feedback_requested' && app.feedbackComments && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3">
-                  <h4 className="font-medium text-yellow-800 mb-2">📝 Feedback from Reviewer</h4>
-                  <p className="text-sm text-yellow-700">{app.feedbackComments}</p>
-                  {app.feedbackRequestedAt && (
-                    <p className="text-xs text-yellow-600 mt-2">
-                      Requested on {new Date(app.feedbackRequestedAt).toLocaleDateString()}
-                    </p>
+              {/* Feedback History */}
+              {app.feedbackHistory && app.feedbackHistory.length > 0 && (
+                <div className="border border-dove-200 rounded-lg p-4 mb-3">
+                  <h4 className="font-medium text-dove-700 mb-3">💬 Feedback History</h4>
+                  <div className="space-y-3">
+                    {app.feedbackHistory.map((note) => (
+                      <div
+                        key={note.id}
+                        className={`p-3 rounded-lg ${
+                          note.author === 'admin'
+                            ? 'bg-yellow-50 border-l-4 border-yellow-400'
+                            : 'bg-blue-50 border-l-4 border-blue-400'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <span className={`text-xs font-medium ${
+                            note.author === 'admin' ? 'text-yellow-700' : 'text-blue-700'
+                          }`}>
+                            {note.author === 'admin' ? '🔐 Reviewer' : '👤 You'}
+                          </span>
+                          <span className="text-xs text-dove-400">{formatDate(note.timestamp)}</span>
+                        </div>
+                        <p className={`text-sm ${
+                          note.author === 'admin' ? 'text-yellow-800' : 'text-blue-800'
+                        }`}>
+                          {note.content}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {app.status === 'feedback_requested' && (
+                    <button
+                      onClick={() => handleRespond(app)}
+                      className="mt-3 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm"
+                    >
+                      Reply to Feedback
+                    </button>
                   )}
-                  <button
-                    onClick={() => handleRespond(app)}
-                    className="mt-3 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm"
-                  >
-                    Respond to Feedback
-                  </button>
                 </div>
               )}
 
@@ -215,41 +245,63 @@ export function MyApplications() {
       )}
 
       {/* Response Modal */}
-      {editingApp && (
+      {respondingApp && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg mx-4">
-            <h3 className="text-lg font-semibold mb-2">Respond to Feedback</h3>
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-2">Reply to Feedback</h3>
             <p className="text-sm text-dove-500 mb-4">
-              Update your application based on the reviewer's feedback.
+              Add your response to the reviewer's feedback.
             </p>
 
-            {editingApp.feedbackComments && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
-                <p className="text-sm text-yellow-700">{editingApp.feedbackComments}</p>
+            {/* Show conversation history in modal */}
+            {respondingApp.feedbackHistory && respondingApp.feedbackHistory.length > 0 && (
+              <div className="mb-4 max-h-48 overflow-y-auto">
+                <div className="space-y-2">
+                  {respondingApp.feedbackHistory.map((note) => (
+                    <div
+                      key={note.id}
+                      className={`p-2 rounded text-sm ${
+                        note.author === 'admin'
+                          ? 'bg-yellow-50 border-l-2 border-yellow-400'
+                          : 'bg-blue-50 border-l-2 border-blue-400'
+                      }`}
+                    >
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-medium">
+                          {note.author === 'admin' ? '🔐 Reviewer' : '👤 You'}
+                        </span>
+                        <span className="text-dove-400">{formatDate(note.timestamp)}</span>
+                      </div>
+                      <p>{note.content}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-dove-700 mb-1">
-                Updated Project Description
+                Your Response
               </label>
               <textarea
-                value={editForm.projectDescription}
-                onChange={(e) => setEditForm({ projectDescription: e.target.value })}
-                className="w-full border border-dove-300 rounded-lg px-3 py-2 h-40 resize-none focus:outline-none focus:ring-2 focus:ring-dove-500"
-                placeholder="Update your project description with the requested information..."
+                value={responseText}
+                onChange={(e) => setResponseText(e.target.value)}
+                className="w-full border border-dove-300 rounded-lg px-3 py-2 h-32 resize-none focus:outline-none focus:ring-2 focus:ring-dove-500"
+                placeholder="Type your response to the reviewer..."
+                autoFocus
               />
             </div>
 
             <div className="flex gap-2">
               <button
                 onClick={handleSubmitResponse}
-                className="flex-1 bg-dove-600 text-white py-2 rounded-lg hover:bg-dove-700"
+                disabled={!responseText.trim()}
+                className="flex-1 bg-dove-600 text-white py-2 rounded-lg hover:bg-dove-700 disabled:opacity-50"
               >
-                Submit Response
+                Send Response
               </button>
               <button
-                onClick={() => setEditingApp(null)}
+                onClick={() => setRespondingApp(null)}
                 className="flex-1 border border-dove-300 py-2 rounded-lg hover:bg-dove-50"
               >
                 Cancel

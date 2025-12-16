@@ -43,11 +43,9 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
   useEffect(() => {
     const checkAIStatus = async () => {
       try {
-        const response = await fetch('/api/budget/status');
-        // If we can reach the API, assume AI is configured (backend checks this)
-        if (response.ok) {
-          setIsAIConfigured(true);
-        }
+        const response = await fetch('/health');
+        const data = await response.json();
+        setIsAIConfigured(data.aiConfigured || false);
       } catch (error) {
         console.error('Failed to check AI status:', error);
         setIsAIConfigured(false);

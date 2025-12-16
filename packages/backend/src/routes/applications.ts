@@ -163,10 +163,35 @@ router.patch('/:id', async (req, res) => {
           error: { code: 'VALIDATION_ERROR', message: 'Feedback comments are required' },
         });
       }
+      // Add admin feedback to history
+      const feedbackHistory = [...(application.feedbackHistory || []), {
+        id: uuidv4(),
+        author: 'admin' as const,
+        content: comments,
+        timestamp: new Date(),
+      }];
       await updateApplication(req.params.id, {
         status: 'feedback_requested',
-        feedbackComments: comments,
-        feedbackRequestedAt: new Date(),
+        feedbackHistory,
+      });
+    } else if (action === 'respond_to_feedback') {
+      const { response } = req.body;
+      if (!response || !response.trim()) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'VALIDATION_ERROR', message: 'Response is required' },
+        });
+      }
+      // Add applicant response to history
+      const feedbackHistory = [...(application.feedbackHistory || []), {
+        id: uuidv4(),
+        author: 'applicant' as const,
+        content: response,
+        timestamp: new Date(),
+      }];
+      await updateApplication(req.params.id, {
+        status: 'submitted',
+        feedbackHistory,
       });
     } else if (categoryId) {
       // Manual category override
@@ -180,11 +205,7 @@ router.patch('/:id', async (req, res) => {
           updates[field] = req.body[field];
         }
       }
-      // Allow status update to 'submitted' when responding to feedback
-      if (req.body.status === 'submitted' && application.status === 'feedback_requested') {
-        updates.status = 'submitted';
-        updates.feedbackComments = null; // Clear feedback after response
-      }
+
       if (Object.keys(updates).length > 0) {
         await updateApplication(req.params.id, updates);
       }
