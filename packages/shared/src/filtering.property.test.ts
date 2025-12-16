@@ -11,6 +11,7 @@ const applicationStatusArb: fc.Arbitrary<ApplicationStatus> = fc.constantFrom(
   'submitted',
   'categorized',
   'under_review',
+  'feedback_requested',
   'approved',
   'rejected'
 );
@@ -35,6 +36,8 @@ const applicationArb: fc.Arbitrary<Application> = fc.record({
   decisionReason: fc.constant(null),
   decidedAt: fc.constant(null),
   attachments: fc.constant([]),
+  feedbackComments: fc.constant(null),
+  feedbackRequestedAt: fc.constant(null),
 });
 
 describe('Property 12: Filter result correctness', () => {

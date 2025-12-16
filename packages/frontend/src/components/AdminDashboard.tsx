@@ -43,6 +43,8 @@ interface Application {
   categorizationConfidence: number | null;
   rankingScore: number | null;
   attachments?: FileAttachment[];
+  feedbackComments?: string | null;
+  feedbackRequestedAt?: string | null;
 }
 
 interface EditForm {
@@ -65,6 +67,8 @@ export function AdminDashboard() {
   const [viewingFiles, setViewingFiles] = useState<Application | null>(null);
   const [viewingApp, setViewingApp] = useState<Application | null>(null);
   const [previewFile, setPreviewFile] = useState<{ appId: string; file: FileAttachment } | null>(null);
+  const [feedbackApp, setFeedbackApp] = useState<Application | null>(null);
+  const [feedbackComments, setFeedbackComments] = useState('');
   const menuButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   const fetchData = async () => {
@@ -90,12 +94,12 @@ export function AdminDashboard() {
     fetchData();
   }, []);
 
-  const handleAction = async (appId: string, action: 'approve' | 'reject', reason?: string) => {
+  const handleAction = async (appId: string, action: 'approve' | 'reject' | 'request_feedback', reason?: string, comments?: string) => {
     try {
       const response = await fetch(`/api/applications/${appId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, reason, confirmOverBudget: true }),
+        body: JSON.stringify({ action, reason, comments, confirmOverBudget: true }),
       });
 
       if (response.ok) {
@@ -104,6 +108,13 @@ export function AdminDashboard() {
     } catch (error) {
       console.error('Action failed:', error);
     }
+  };
+
+  const handleRequestFeedback = async () => {
+    if (!feedbackApp || !feedbackComments.trim()) return;
+    await handleAction(feedbackApp.id, 'request_feedback', undefined, feedbackComments);
+    setFeedbackApp(null);
+    setFeedbackComments('');
   };
 
   const handleDelete = async (appId: string) => {
@@ -274,6 +285,7 @@ export function AdminDashboard() {
           <option value="submitted">Submitted</option>
           <option value="categorized">Categorized</option>
           <option value="under_review">Under Review</option>
+          <option value="feedback_requested">Feedback Requested</option>
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
         </select>
@@ -312,10 +324,12 @@ export function AdminDashboard() {
                         ? 'bg-green-100 text-green-700'
                         : app.status === 'rejected'
                           ? 'bg-red-100 text-red-700'
-                          : 'bg-dove-100 text-dove-700'
+                          : app.status === 'feedback_requested'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-dove-100 text-dove-700'
                     }`}
                   >
-                    {app.status}
+                    {app.status === 'feedback_requested' ? 'feedback' : app.status}
                   </span>
                 </td>
                 <td className="px-3 py-2 text-center text-sm">
@@ -328,14 +342,23 @@ export function AdminDashboard() {
                         <button
                           onClick={() => handleAction(app.id, 'approve')}
                           className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                          title="Approve"
                         >
                           ✓
                         </button>
                         <button
                           onClick={() => handleAction(app.id, 'reject')}
                           className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
+                          title="Reject"
                         >
                           ✗
+                        </button>
+                        <button
+                          onClick={() => { setFeedbackApp(app); setFeedbackComments(''); }}
+                          className="bg-yellow-500 text-white px-2 py-1 rounded text-xs hover:bg-yellow-600"
+                          title="Request Feedback"
+                        >
+                          💬
                         </button>
                       </>
                     )}
@@ -571,6 +594,21 @@ export function AdminDashboard() {
               <p className="text-sm bg-dove-50 rounded p-3 mt-1">{viewingApp.projectDescription}</p>
             </div>
 
+            {/* Feedback Comments */}
+            {viewingApp.feedbackComments && (
+              <div className="mb-4">
+                <label className="text-xs text-dove-500">Feedback Requested</label>
+                <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mt-1">
+                  <p className="text-sm text-yellow-800">{viewingApp.feedbackComments}</p>
+                  {viewingApp.feedbackRequestedAt && (
+                    <p className="text-xs text-yellow-600 mt-2">
+                      Requested on {new Date(viewingApp.feedbackRequestedAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Attachments */}
             {viewingApp.attachments && viewingApp.attachments.length > 0 && (
               <div className="mb-4">
@@ -617,6 +655,12 @@ export function AdminDashboard() {
                   >
                     ✗ Reject
                   </button>
+                  <button
+                    onClick={() => { setFeedbackApp(viewingApp); setFeedbackComments(''); setViewingApp(null); }}
+                    className="flex-1 bg-yellow-500 text-white py-2 rounded hover:bg-yellow-600"
+                  >
+                    💬 Feedback
+                  </button>
                 </>
               )}
               <button
@@ -659,6 +703,43 @@ export function AdminDashboard() {
               ) : (
                 <p className="text-dove-500">Preview not available</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Request Feedback Modal */}
+      {feedbackApp && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-2">💬 Request Feedback</h3>
+            <p className="text-sm text-dove-500 mb-4">
+              Send comments to <span className="font-medium">{feedbackApp.applicantName}</span> for "{feedbackApp.projectTitle}"
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm text-dove-600 mb-1">Comments for Applicant</label>
+              <textarea
+                value={feedbackComments}
+                onChange={(e) => setFeedbackComments(e.target.value)}
+                placeholder="Please provide more details about your budget breakdown..."
+                className="w-full border border-dove-300 rounded px-3 py-2 h-32 resize-none"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleRequestFeedback}
+                disabled={!feedbackComments.trim()}
+                className="flex-1 bg-yellow-500 text-white py-2 rounded hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Send Feedback Request
+              </button>
+              <button
+                onClick={() => { setFeedbackApp(null); setFeedbackComments(''); }}
+                className="flex-1 border border-dove-300 py-2 rounded hover:bg-dove-50"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ export type ApplicationStatus =
   | 'submitted'
   | 'categorized'
   | 'under_review'
+  | 'feedback_requested'
   | 'approved'
   | 'rejected';
 
@@ -38,6 +39,8 @@ export interface Application {
   decisionReason: string | null;
   decidedAt: Date | null;
   attachments: FileAttachment[];
+  feedbackComments: string | null;
+  feedbackRequestedAt: Date | null;
 }
 
 // Budget category

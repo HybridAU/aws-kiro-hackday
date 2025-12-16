@@ -146,6 +146,19 @@ router.patch('/:id', async (req, res) => {
         decisionReason: reason || null,
         decidedAt: new Date(),
       });
+    } else if (action === 'request_feedback') {
+      const { comments } = req.body;
+      if (!comments || !comments.trim()) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'VALIDATION_ERROR', message: 'Feedback comments are required' },
+        });
+      }
+      await updateApplication(req.params.id, {
+        status: 'feedback_requested',
+        feedbackComments: comments,
+        feedbackRequestedAt: new Date(),
+      });
     } else if (categoryId) {
       // Manual category override
       await updateApplication(req.params.id, { categoryId });

@@ -19,6 +19,7 @@ const applicationStatusArb: fc.Arbitrary<ApplicationStatus> = fc.constantFrom(
   'submitted',
   'categorized',
   'under_review',
+  'feedback_requested',
   'approved',
   'rejected'
 );
@@ -52,6 +53,8 @@ const applicationArb: fc.Arbitrary<Application> = fc.record({
   decisionReason: fc.option(fc.string(), { nil: null }),
   decidedAt: fc.option(fc.date(), { nil: null }),
   attachments: fc.constant([]),
+  feedbackComments: fc.option(fc.string(), { nil: null }),
+  feedbackRequestedAt: fc.option(fc.date(), { nil: null }),
 });
 
 const categoryArb: fc.Arbitrary<Category> = fc.record({

@@ -18,6 +18,7 @@ export function serializeApplication(app: Application): string {
     submittedAt: app.submittedAt.toISOString(),
     updatedAt: app.updatedAt.toISOString(),
     decidedAt: app.decidedAt?.toISOString() ?? null,
+    feedbackRequestedAt: app.feedbackRequestedAt?.toISOString() ?? null,
   });
 }
 
@@ -54,6 +55,8 @@ export function deserializeApplication(json: string): Application {
       decisionReason: obj.decisionReason ?? null,
       decidedAt: obj.decidedAt ? new Date(obj.decidedAt) : null,
       attachments: obj.attachments ?? [],
+      feedbackComments: obj.feedbackComments ?? null,
+      feedbackRequestedAt: obj.feedbackRequestedAt ? new Date(obj.feedbackRequestedAt) : null,
     };
   } catch (error) {
     if (error instanceof SerializationError) throw error;
