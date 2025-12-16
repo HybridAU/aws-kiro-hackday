@@ -26,9 +26,18 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
   const hasReceivedWelcome = useRef(false);
   const modeRef = useRef(mode);
 
+  const contextRef = useRef(context);
+
   // Keep refs updated
   onFieldUpdateRef.current = onFieldUpdate;
   modeRef.current = mode;
+  contextRef.current = context;
+
+  // Reset messages when context changes
+  useEffect(() => {
+    setMessages([]);
+    hasReceivedWelcome.current = false;
+  }, [context]);
 
   useEffect(() => {
     // Connect to WebSocket only once
@@ -41,12 +50,13 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'message') {
-        // Skip duplicate welcome messages
+        // Skip welcome messages from server - we show our own based on context
         const isWelcome = data.data.message.includes("help you apply for a grant");
-        if (isWelcome && hasReceivedWelcome.current) {
-          return;
-        }
         if (isWelcome) {
+          // Only show applicant welcome in applicant context
+          if (contextRef.current !== 'application' || hasReceivedWelcome.current) {
+            return;
+          }
           hasReceivedWelcome.current = true;
         }
 
@@ -165,7 +175,7 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
           <p className="text-dove-500 text-center mt-8">
             {context === 'application'
               ? "Hi! I'm here to help you apply for a grant. Tell me about your project!"
-              : 'Select an application to get AI-powered analysis.'}
+              : "Hi! I'm here to help you manage grants. Ask me about reviewing applications, budget allocation, or ranking criteria."}
           </p>
         ) : (
           <div className="space-y-4">
