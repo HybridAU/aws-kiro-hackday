@@ -19,6 +19,8 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
   const [input, setInput] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionInterface | null>(null);
@@ -56,6 +58,9 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'message') {
+        setIsThinking(false);
+        setStatus(null);
+        
         // Skip welcome messages from server - we show our own based on context
         const isWelcome = data.data.message.includes("help you apply for a grant");
         if (isWelcome) {
@@ -106,6 +111,10 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
     };
     setMessages((prev) => [...prev, msg]);
 
+    // Show thinking status
+    setIsThinking(true);
+    setStatus('Thinking...');
+
     wsRef.current.send(JSON.stringify({ type: 'chat', message: text }));
     setInput('');
   };
@@ -141,6 +150,7 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
     recognition.interimResults = false;
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
+      setStatus('Transcribing...');
       const transcript = event.results[0][0].transcript;
       sendMessage(transcript);
     };
@@ -206,6 +216,14 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
                 </div>
               </div>
             ))}
+            {/* Status indicator */}
+            {isThinking && (
+              <div className="flex justify-start">
+                <div className="bg-dove-100 border border-dove-200 rounded-lg px-4 py-2 text-dove-600 animate-pulse">
+                  {status || 'Thinking...'}
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
         )}
@@ -216,9 +234,11 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={mode === 'voice' ? 'Listening...' : 'Type your message...'}
+          placeholder={isListening ? '🎙️ Listening... speak now' : 'Type your message...'}
           disabled={mode === 'voice' && isListening}
-          className="flex-1 border border-dove-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-dove-500"
+          className={`flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-dove-500 ${
+            isListening ? 'border-red-400 bg-red-50 animate-pulse' : 'border-dove-300'
+          }`}
         />
         <button
           type="submit"
