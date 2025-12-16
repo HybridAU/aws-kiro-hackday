@@ -179,18 +179,18 @@ export function BudgetEditor({ onClose }: BudgetEditorProps) {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header with navigation */}
+    <div className="space-y-4">
+      {/* Back button */}
+      <button
+        onClick={handleClose}
+        className="text-dove-500 hover:text-dove-700 text-sm flex items-center gap-1"
+      >
+        ← Back
+      </button>
+
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handleClose}
-            className="text-dove-600 hover:text-dove-800 flex items-center gap-2"
-          >
-            ← Back to Dashboard
-          </button>
-          <h2 className="text-lg font-semibold">💰 Budget Editor</h2>
-        </div>
+        <h2 className="text-lg font-semibold">💰 Budget Editor</h2>
         
         {/* Year Selector */}
         <div className="flex items-center gap-2">
