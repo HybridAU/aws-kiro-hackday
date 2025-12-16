@@ -7,7 +7,7 @@
       "name": "Medical",
       "description": "Healthcare projects",
       "allocatedBudget": 30000,
-      "spentBudget": 1000000,
+      "spentBudget": 1022000,
       "isActive": true
     },
     {
@@ -15,7 +15,7 @@
       "name": "Sport",
       "description": "Athletic programs",
       "allocatedBudget": 20000,
-      "spentBudget": 0,
+      "spentBudget": 15000,
       "isActive": true
     },
     {
@@ -44,5 +44,5 @@
     }
   ],
   "createdAt": "2025-12-16T05:02:46.023Z",
-  "updatedAt": "2025-12-16T05:02:46.023Z"
+  "updatedAt": "2025-12-16T05:46:37.810Z"
 }
