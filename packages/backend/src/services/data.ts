@@ -103,6 +103,16 @@ export async function listApplications(filters?: ApplicationFilters): Promise<Ap
   return filterApplications(applications, filters);
 }
 
+export async function deleteApplication(id: string): Promise<boolean> {
+  const applications = await loadApplications();
+  const index = applications.findIndex((a) => a.id === id);
+  if (index === -1) return false;
+  
+  applications.splice(index, 1);
+  await saveApplications(applications);
+  return true;
+}
+
 // Budget Config
 const BUDGET_FILE = join(DATA_DIR, 'budget.json');
 

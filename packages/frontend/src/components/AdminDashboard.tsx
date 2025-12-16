@@ -27,7 +27,9 @@ interface Application {
   id: string;
   referenceNumber: string;
   applicantName: string;
+  applicantEmail: string;
   projectTitle: string;
+  projectDescription: string;
   requestedAmount: number;
   status: string;
   categoryId: string | null;
@@ -35,12 +37,22 @@ interface Application {
   rankingScore: number | null;
 }
 
+interface EditForm {
+  applicantName: string;
+  applicantEmail: string;
+  projectTitle: string;
+  projectDescription: string;
+  requestedAmount: number;
+}
+
 export function AdminDashboard() {
   const [budgetStatus, setBudgetStatus] = useState<BudgetStatus | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
-  const [_selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [filter, setFilter] = useState({ category: '', status: '' });
   const [loading, setLoading] = useState(true);
+  const [editingApp, setEditingApp] = useState<Application | null>(null);
+  const [editForm, setEditForm] = useState<EditForm | null>(null);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
@@ -75,10 +87,52 @@ export function AdminDashboard() {
 
       if (response.ok) {
         fetchData();
-        setSelectedApp(null);
       }
     } catch (error) {
       console.error('Action failed:', error);
+    }
+  };
+
+  const handleDelete = async (appId: string) => {
+    if (!confirm('Are you sure you want to delete this application?')) return;
+    try {
+      const response = await fetch(`/api/applications/${appId}`, { method: 'DELETE' });
+      if (response.ok) {
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Delete failed:', error);
+    }
+    setMenuOpen(null);
+  };
+
+  const handleEdit = (app: Application) => {
+    setEditingApp(app);
+    setEditForm({
+      applicantName: app.applicantName,
+      applicantEmail: app.applicantEmail || '',
+      projectTitle: app.projectTitle,
+      projectDescription: app.projectDescription || '',
+      requestedAmount: app.requestedAmount,
+    });
+    setMenuOpen(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingApp || !editForm) return;
+    try {
+      const response = await fetch(`/api/applications/${editingApp.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      });
+      if (response.ok) {
+        fetchData();
+        setEditingApp(null);
+        setEditForm(null);
+      }
+    } catch (error) {
+      console.error('Save failed:', error);
     }
   };
 
@@ -239,24 +293,49 @@ export function AdminDashboard() {
                   {app.rankingScore !== null ? app.rankingScore.toFixed(1) : '-'}
                 </td>
                 <td className="px-3 py-2 text-center">
-                  {app.status !== 'approved' && app.status !== 'rejected' ? (
-                    <div className="flex gap-1 justify-center">
+                  <div className="flex gap-1 justify-center items-center">
+                    {app.status !== 'approved' && app.status !== 'rejected' && (
+                      <>
+                        <button
+                          onClick={() => handleAction(app.id, 'approve')}
+                          className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                        >
+                          ✓
+                        </button>
+                        <button
+                          onClick={() => handleAction(app.id, 'reject')}
+                          className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
+                        >
+                          ✗
+                        </button>
+                      </>
+                    )}
+                    {/* Menu button */}
+                    <div className="relative">
                       <button
-                        onClick={() => handleAction(app.id, 'approve')}
-                        className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                        onClick={() => setMenuOpen(menuOpen === app.id ? null : app.id)}
+                        className="text-dove-500 hover:text-dove-700 px-1"
                       >
-                        ✓
+                        ⋮
                       </button>
-                      <button
-                        onClick={() => handleAction(app.id, 'reject')}
-                        className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
-                      >
-                        ✗
-                      </button>
+                      {menuOpen === app.id && (
+                        <div className="absolute right-0 top-6 bg-white border border-dove-200 rounded shadow-lg z-10 min-w-[100px]">
+                          <button
+                            onClick={() => handleEdit(app)}
+                            className="block w-full text-left px-3 py-2 text-sm hover:bg-dove-50"
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(app.id)}
+                            className="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <span className="text-dove-400 text-xs">Done</span>
-                  )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -270,6 +349,76 @@ export function AdminDashboard() {
           </tbody>
         </table>
       </div>
+
+      {/* Edit Modal */}
+      {editingApp && editForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Edit Application</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-dove-600 mb-1">Applicant Name</label>
+                <input
+                  type="text"
+                  value={editForm.applicantName}
+                  onChange={(e) => setEditForm({ ...editForm, applicantName: e.target.value })}
+                  className="w-full border border-dove-300 rounded px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-dove-600 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={editForm.applicantEmail}
+                  onChange={(e) => setEditForm({ ...editForm, applicantEmail: e.target.value })}
+                  className="w-full border border-dove-300 rounded px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-dove-600 mb-1">Project Title</label>
+                <input
+                  type="text"
+                  value={editForm.projectTitle}
+                  onChange={(e) => setEditForm({ ...editForm, projectTitle: e.target.value })}
+                  className="w-full border border-dove-300 rounded px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-dove-600 mb-1">Description</label>
+                <textarea
+                  value={editForm.projectDescription}
+                  onChange={(e) => setEditForm({ ...editForm, projectDescription: e.target.value })}
+                  className="w-full border border-dove-300 rounded px-3 py-2"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-dove-600 mb-1">Requested Amount ($)</label>
+                <input
+                  type="number"
+                  value={editForm.requestedAmount}
+                  onChange={(e) => setEditForm({ ...editForm, requestedAmount: Number(e.target.value) })}
+                  className="w-full border border-dove-300 rounded px-3 py-2"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={handleSaveEdit}
+                className="flex-1 bg-dove-600 text-white py-2 rounded hover:bg-dove-700"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => { setEditingApp(null); setEditForm(null); }}
+                className="flex-1 border border-dove-300 py-2 rounded hover:bg-dove-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

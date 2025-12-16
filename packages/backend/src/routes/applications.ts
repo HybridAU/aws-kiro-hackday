@@ -141,10 +141,46 @@ router.patch('/:id', async (req, res) => {
     } else if (categoryId) {
       // Manual category override
       await updateApplication(req.params.id, { categoryId });
+    } else {
+      // General field updates (edit)
+      const allowedFields = ['applicantName', 'applicantEmail', 'projectTitle', 'projectDescription', 'requestedAmount'];
+      const updates: Record<string, unknown> = {};
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          updates[field] = req.body[field];
+        }
+      }
+      if (Object.keys(updates).length > 0) {
+        await updateApplication(req.params.id, updates);
+      }
     }
 
     const updated = await getApplication(req.params.id);
     res.json({ success: true, data: updated });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: (error as Error).message },
+    });
+  }
+});
+
+// Delete application
+router.delete('/:id', async (req, res) => {
+  try {
+    const application = await getApplication(req.params.id);
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Application not found' },
+      });
+    }
+
+    // Import and use deleteApplication
+    const { deleteApplication } = await import('../services/data');
+    await deleteApplication(req.params.id);
+    
+    res.json({ success: true, message: 'Application deleted' });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -166,7 +202,7 @@ router.post('/rank/:categoryId', async (req, res) => {
     }
 
     const criteria = await loadCriteria();
-    const scoredApps = new Map<string, typeof import('@dove-grants/shared').CriterionScore[]>();
+    const scoredApps = new Map<string, { criterionId: string; criterionName: string; score: number; weight: number; weightedScore: number; reasoning: string }[]>();
 
     // Score each application
     for (const app of applications) {
