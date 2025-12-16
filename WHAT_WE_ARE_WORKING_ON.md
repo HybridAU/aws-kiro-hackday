@@ -6,7 +6,7 @@
 |--------|--------------|
 | Michael | add log in to the admin dashboard |
 | Jerome | fix audio recorder |
-| Sam | TBD |
+| Sam | Admin console - ask for feedback |
 
 ## Notes
 Update this file to change the dev banner!
