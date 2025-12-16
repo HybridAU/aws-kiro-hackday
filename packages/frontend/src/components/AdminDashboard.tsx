@@ -440,27 +440,27 @@ export function AdminDashboard() {
                 <td className="px-3 py-2 text-center text-sm">
                   {app.rankingScore !== null ? app.rankingScore.toFixed(1) : '-'}
                 </td>
-                <td className="px-3 py-2 text-center" onClick={(e) => e.stopPropagation()}>
-                  <div className="flex gap-1 justify-center items-center">
+                <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex gap-1 justify-end items-center">
                     {app.status !== 'approved' && app.status !== 'rejected' && (
                       <>
                         <button
                           onClick={() => handleAction(app.id, 'approve')}
-                          className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                          className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs hover:bg-emerald-200 border border-emerald-200"
                           title="Approve"
                         >
                           ✓
                         </button>
                         <button
                           onClick={() => handleAction(app.id, 'reject')}
-                          className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
+                          className="bg-rose-100 text-rose-700 px-2 py-1 rounded text-xs hover:bg-rose-200 border border-rose-200"
                           title="Reject"
                         >
                           ✗
                         </button>
                         <button
                           onClick={() => { setFeedbackApp(app); setFeedbackComments(''); }}
-                          className="bg-yellow-500 text-white px-2 py-1 rounded text-xs hover:bg-yellow-600"
+                          className="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs hover:bg-amber-200 border border-amber-200"
                           title="Request Feedback"
                         >
                           💬
@@ -479,9 +479,9 @@ export function AdminDashboard() {
                           setMenuOpen(app.id);
                         }
                       }}
-                      className="text-dove-500 hover:text-dove-700 px-2 py-1 border border-dove-200 rounded"
+                      className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs hover:bg-indigo-200 border border-indigo-200 font-bold"
                     >
-                      ⋮
+                      ⋯
                     </button>
                   </div>
                 </td>
