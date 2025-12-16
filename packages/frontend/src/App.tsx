@@ -3,6 +3,7 @@ import { SplitScreenLayout } from './components/SplitScreenLayout';
 import { AICompanion } from './components/AICompanion';
 import { ApplicationForm } from './components/ApplicationForm';
 import { AdminDashboard } from './components/AdminDashboard';
+import { DevBanner } from './components/DevBanner';
 
 type UserRole = 'applicant' | 'admin';
 
@@ -50,6 +51,9 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Dev Mode Banner */}
+      <DevBanner />
+
       {/* Header */}
       <header className="bg-dove-800 text-white p-4">
         <div className="container mx-auto flex justify-between items-center">

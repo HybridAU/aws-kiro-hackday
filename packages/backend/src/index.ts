@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import applicationsRouter from './routes/applications';
 import budgetRouter from './routes/budget';
 import criteriaRouter from './routes/criteria';
@@ -22,6 +24,42 @@ app.get('/health', (_req, res) => {
     timestamp: new Date().toISOString(),
     aiConfigured: isAIConfigured(),
   });
+});
+
+// Dev status endpoint - reads from WHAT_WE_ARE_WORKING_ON.md
+app.get('/api/dev-status', (_req, res) => {
+  try {
+    const mdPath = join(__dirname, '../../../WHAT_WE_ARE_WORKING_ON.md');
+    const content = readFileSync(mdPath, 'utf-8');
+    
+    // Parse the markdown table for team tasks
+    const tasks: { person: string; task: string }[] = [];
+    const tableMatch = content.match(/\| Person \| Current Task \|[\s\S]*?(?=\n\n|## |$)/);
+    
+    if (tableMatch) {
+      const lines = tableMatch[0].split('\n').slice(2); // Skip header and separator
+      for (const line of lines) {
+        const match = line.match(/\|\s*(\w+)\s*\|\s*(.+?)\s*\|/);
+        if (match) {
+          tasks.push({ person: match[1], task: match[2] });
+        }
+      }
+    }
+    
+    // Extract notes section
+    const notesMatch = content.match(/## Notes\n([\s\S]*?)(?=\n## |$)/);
+    const notes = notesMatch ? notesMatch[1].trim() : '';
+    
+    res.json({ success: true, tasks, notes });
+  } catch (error) {
+    res.json({ 
+      success: true, 
+      tasks: [
+        { person: 'Team', task: 'Update WHAT_WE_ARE_WORKING_ON.md to show tasks' }
+      ],
+      notes: 'Create WHAT_WE_ARE_WORKING_ON.md in project root'
+    });
+  }
 });
 
 // API Routes
