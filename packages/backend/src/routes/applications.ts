@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import multer from 'multer';
+import { v4 as uuidv4 } from 'uuid';
 import {
   createApplication,
   getApplication,
@@ -16,9 +18,15 @@ import {
   rankApplications,
   calculateTotalScore,
 } from '@dove-grants/shared';
-import type { ApplicationFilters, ApplicationStatus } from '@dove-grants/shared';
+import type { ApplicationFilters, ApplicationStatus, FileAttachment } from '@dove-grants/shared';
 
 const router = Router();
+
+// Store files in memory, then convert to base64
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit for base64 storage
+});
 
 // Create application
 router.post('/', async (req, res) => {
@@ -181,6 +189,81 @@ router.delete('/:id', async (req, res) => {
     await deleteApplication(req.params.id);
     
     res.json({ success: true, message: 'Application deleted' });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: (error as Error).message },
+    });
+  }
+});
+
+// Upload file to application (stored as base64 in JSON)
+router.post('/:id/files', upload.single('file'), async (req, res) => {
+  try {
+    const application = await getApplication(req.params.id);
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Application not found' },
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'NO_FILE', message: 'No file uploaded' },
+      });
+    }
+
+    // Convert to base64
+    const base64Data = req.file.buffer.toString('base64');
+
+    const attachment: FileAttachment = {
+      id: uuidv4(),
+      originalName: req.file.originalname,
+      mimeType: req.file.mimetype,
+      size: req.file.size,
+      data: base64Data,
+      uploadedAt: new Date(),
+    };
+
+    const attachments = [...(application.attachments || []), attachment];
+    await updateApplication(req.params.id, { attachments });
+
+    // Return without the data field to keep response small
+    res.json({ success: true, data: { ...attachment, data: undefined } });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: (error as Error).message },
+    });
+  }
+});
+
+// Get file (serve base64 as download)
+router.get('/:id/files/:fileId', async (req, res) => {
+  try {
+    const application = await getApplication(req.params.id);
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Application not found' },
+      });
+    }
+
+    const file = application.attachments?.find(f => f.id === req.params.fileId);
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'File not found' },
+      });
+    }
+
+    // Convert base64 back to buffer and send
+    const buffer = Buffer.from(file.data, 'base64');
+    res.setHeader('Content-Type', file.mimeType);
+    res.setHeader('Content-Disposition', `attachment; filename="${file.originalName}"`);
+    res.send(buffer);
   } catch (error) {
     res.status(500).json({
       success: false,

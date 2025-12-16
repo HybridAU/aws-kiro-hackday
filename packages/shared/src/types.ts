@@ -7,6 +7,16 @@ export type ApplicationStatus =
   | 'approved'
   | 'rejected';
 
+// File attachment (base64 encoded for hackathon simplicity)
+export interface FileAttachment {
+  id: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  data: string; // base64 encoded
+  uploadedAt: Date;
+}
+
 // Application submitted by applicant
 export interface Application {
   id: string;
@@ -27,6 +37,7 @@ export interface Application {
   decision: 'approved' | 'rejected' | null;
   decisionReason: string | null;
   decidedAt: Date | null;
+  attachments: FileAttachment[];
 }
 
 // Budget category

@@ -67,6 +67,7 @@ export async function createApplication(formData: ApplicationFormData): Promise<
     decision: null,
     decisionReason: null,
     decidedAt: null,
+    attachments: [],
   };
 
   applications.push(application);
