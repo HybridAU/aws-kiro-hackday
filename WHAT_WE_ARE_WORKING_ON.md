@@ -4,7 +4,7 @@
 
 | Person | Current Task |
 |--------|--------------|
-| Michael | TBD |
+| Michael | add log in to the admin dashboard |
 | Jerome | fix audio recorder |
 | Sam | TBD |
 
