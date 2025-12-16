@@ -4,16 +4,16 @@
   "categories": [
     {
       "id": "medical",
-      "name": "Medical",
-      "description": "Healthcare projects",
+      "name": "Medical Research",
+      "description": "Healthcare and medical research projects",
       "allocatedBudget": 30000,
-      "spentBudget": 1000000,
+      "spentBudget": 25000,
       "isActive": true
     },
     {
       "id": "sport",
-      "name": "Sport",
-      "description": "Athletic programs",
+      "name": "Youth Sports",
+      "description": "Athletic programs and youth sports initiatives",
       "allocatedBudget": 20000,
       "spentBudget": 0,
       "isActive": true
@@ -21,14 +21,14 @@
     {
       "id": "education",
       "name": "Education",
-      "description": "Educational initiatives",
+      "description": "Educational initiatives and learning programs",
       "allocatedBudget": 25000,
-      "spentBudget": 0,
+      "spentBudget": 18000,
       "isActive": true
     },
     {
       "id": "arts",
-      "name": "Arts",
+      "name": "Arts & Culture",
       "description": "Cultural and artistic projects",
       "allocatedBudget": 15000,
       "spentBudget": 0,
@@ -36,8 +36,8 @@
     },
     {
       "id": "community",
-      "name": "Community",
-      "description": "Community development",
+      "name": "Community Development",
+      "description": "Community building and social programs",
       "allocatedBudget": 10000,
       "spentBudget": 0,
       "isActive": true
