@@ -308,7 +308,7 @@ export function BudgetEditor({ onClose }: BudgetEditorProps) {
             <button
               onClick={handleSave}
               disabled={!hasUnsavedChanges || isSaving}
-              className="bg-dove-600 text-white px-6 py-2 rounded hover:bg-dove-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>

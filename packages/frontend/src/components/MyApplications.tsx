@@ -244,7 +244,7 @@ export function MyApplications() {
             <div className="flex gap-2">
               <button
                 onClick={handleSubmitResponse}
-                className="flex-1 bg-dove-600 text-white py-2 rounded-lg hover:bg-dove-700"
+                className="flex-1 bg-sky-500 text-white py-2 rounded-lg hover:bg-sky-600"
               >
                 Submit Response
               </button>

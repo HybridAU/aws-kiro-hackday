@@ -259,7 +259,7 @@ export function ApplicationForm({
         <button
           type="submit"
           disabled={isSubmitting || uploadingFiles}
-          className="w-full bg-dove-600 text-white py-2 rounded hover:bg-dove-700 disabled:opacity-50"
+          className="w-full bg-sky-500 text-white py-2 rounded hover:bg-sky-600 disabled:opacity-50"
         >
           {uploadingFiles ? 'Uploading files...' : isSubmitting ? 'Submitting...' : 'Submit Application'}
         </button>

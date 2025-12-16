@@ -203,7 +203,7 @@ export function AdminDashboard() {
         {budgetStatus && (
           <button
             onClick={() => setShowBudgetEditor(true)}
-            className="bg-dove-600 text-white px-4 py-2 rounded hover:bg-dove-700 flex items-center gap-2"
+            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex items-center gap-2"
           >
             💰 Edit Budget
           </button>
@@ -509,7 +509,7 @@ export function AdminDashboard() {
             <div className="flex gap-2 mt-4">
               <button
                 onClick={handleSaveEdit}
-                className="flex-1 bg-dove-600 text-white py-2 rounded hover:bg-dove-700"
+                className="flex-1 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
               >
                 Save
               </button>

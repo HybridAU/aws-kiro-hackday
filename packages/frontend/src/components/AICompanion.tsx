@@ -306,7 +306,7 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
         <button
           type="submit"
           disabled={!isAIConfigured || !input.trim()}
-          className="bg-dove-600 text-white px-4 py-2 rounded-lg hover:bg-dove-700 disabled:opacity-50"
+          className={`${context === 'admin' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-sky-500 hover:bg-sky-600'} text-white px-4 py-2 rounded-lg disabled:opacity-50`}
         >
           Send
         </button>
