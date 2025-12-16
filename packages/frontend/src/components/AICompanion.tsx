@@ -22,9 +22,16 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionInterface | null>(null);
+  const onFieldUpdateRef = useRef(onFieldUpdate);
+  const hasReceivedWelcome = useRef(false);
+  const modeRef = useRef(mode);
+
+  // Keep refs updated
+  onFieldUpdateRef.current = onFieldUpdate;
+  modeRef.current = mode;
 
   useEffect(() => {
-    // Connect to WebSocket
+    // Connect to WebSocket only once
     const ws = new WebSocket(`ws://${window.location.hostname}:3001/ws`);
 
     ws.onopen = () => {
@@ -34,6 +41,15 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'message') {
+        // Skip duplicate welcome messages
+        const isWelcome = data.data.message.includes("help you apply for a grant");
+        if (isWelcome && hasReceivedWelcome.current) {
+          return;
+        }
+        if (isWelcome) {
+          hasReceivedWelcome.current = true;
+        }
+
         const msg: Message = {
           id: Date.now().toString(),
           role: 'assistant',
@@ -44,14 +60,8 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
 
         // Apply field updates
         data.data.fieldUpdates?.forEach((update: { field: string; value: string }) => {
-          onFieldUpdate(update.field, update.value);
+          onFieldUpdateRef.current(update.field, update.value);
         });
-
-        // Speak response if in voice mode
-        if (mode === 'voice' && 'speechSynthesis' in window) {
-          const utterance = new SpeechSynthesisUtterance(data.data.message);
-          speechSynthesis.speak(utterance);
-        }
       }
     };
 
@@ -64,7 +74,7 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
     return () => {
       ws.close();
     };
-  }, [onFieldUpdate, mode]);
+  }, []); // Empty deps - connect only once
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -121,7 +131,8 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
 
     recognition.onend = () => {
       setIsListening(false);
-      if (mode === 'voice') {
+      // Use ref to get current mode value (not stale closure)
+      if (modeRef.current === 'voice') {
         setTimeout(() => startListening(), 500);
       }
     };
