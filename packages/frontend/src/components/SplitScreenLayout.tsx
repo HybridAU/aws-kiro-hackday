@@ -8,13 +8,13 @@ interface SplitScreenLayoutProps {
 
 export function SplitScreenLayout({ leftPanel, rightPanel }: SplitScreenLayoutProps) {
   return (
-    <div className="flex-1 flex h-full">
-      {/* Left Panel - AI Companion */}
-      <div className="w-1/2 border-r border-dove-200 flex flex-col bg-white">
+    <div className="flex-1 flex overflow-hidden">
+      {/* Left Panel - AI Companion (scrolls internally) */}
+      <div className="w-1/2 border-r border-dove-200 flex flex-col bg-white overflow-hidden">
         {leftPanel}
       </div>
 
-      {/* Right Panel - Form or Dashboard */}
+      {/* Right Panel - Form or Dashboard (scrolls internally) */}
       <div className="w-1/2 flex flex-col bg-dove-50 overflow-y-auto">
         {rightPanel}
       </div>
