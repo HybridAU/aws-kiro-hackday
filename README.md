@@ -1,3 +1,3 @@
 # aws-kiro-hackday
 
-A grants management system called "Dove Grants" buits as part of an "AWS Kiro hackathon"
+A grants management system called "Dove Grants" built as part of an "AWS Kiro hackathon"
