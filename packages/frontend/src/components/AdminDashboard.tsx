@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface Category {
   id: string;
@@ -53,6 +53,8 @@ export function AdminDashboard() {
   const [editingApp, setEditingApp] = useState<Application | null>(null);
   const [editForm, setEditForm] = useState<EditForm | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const menuButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   const fetchData = async () => {
     try {
@@ -256,7 +258,8 @@ export function AdminDashboard() {
       </div>
 
       {/* Applications List */}
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
+      <div className="bg-white rounded-lg shadow overflow-visible">
+        <div className="overflow-x-auto">
         <table className="w-full min-w-[800px]">
           <thead className="bg-dove-100">
             <tr>
@@ -311,30 +314,21 @@ export function AdminDashboard() {
                       </>
                     )}
                     {/* Menu button */}
-                    <div className="relative">
-                      <button
-                        onClick={() => setMenuOpen(menuOpen === app.id ? null : app.id)}
-                        className="text-dove-500 hover:text-dove-700 px-1"
-                      >
-                        ⋮
-                      </button>
-                      {menuOpen === app.id && (
-                        <div className="absolute right-0 top-6 bg-white border border-dove-200 rounded shadow-lg z-10 min-w-[100px]">
-                          <button
-                            onClick={() => handleEdit(app)}
-                            className="block w-full text-left px-3 py-2 text-sm hover:bg-dove-50"
-                          >
-                            ✏️ Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(app.id)}
-                            className="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                          >
-                            🗑️ Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <button
+                      ref={(el) => { if (el) menuButtonRefs.current.set(app.id, el); }}
+                      onClick={(e) => {
+                        if (menuOpen === app.id) {
+                          setMenuOpen(null);
+                        } else {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setMenuPos({ top: rect.bottom + 4, left: rect.right - 120 });
+                          setMenuOpen(app.id);
+                        }
+                      }}
+                      className="text-dove-500 hover:text-dove-700 px-2 py-1 border border-dove-200 rounded"
+                    >
+                      ⋮
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -348,7 +342,40 @@ export function AdminDashboard() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
+
+      {/* Dropdown Menu Overlay */}
+      {menuOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(null)} />
+          <div 
+            className="fixed z-50 bg-white border border-dove-200 rounded shadow-lg min-w-[120px]"
+            style={{ top: menuPos.top, left: menuPos.left }}
+          >
+            {(() => {
+              const app = applications.find(a => a.id === menuOpen);
+              if (!app) return null;
+              return (
+                <>
+                  <button
+                    onClick={() => handleEdit(app)}
+                    className="block w-full text-left px-4 py-2 text-sm hover:bg-dove-50"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(app.id)}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    🗑️ Delete
+                  </button>
+                </>
+              );
+            })()}
+          </div>
+        </>
+      )}
 
       {/* Edit Modal */}
       {editingApp && editForm && (
