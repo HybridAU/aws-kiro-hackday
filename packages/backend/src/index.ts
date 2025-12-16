@@ -8,7 +8,8 @@ import { join } from 'path';
 import applicationsRouter from './routes/applications';
 import budgetRouter from './routes/budget';
 import criteriaRouter from './routes/criteria';
-import { processApplicantMessage, isAIConfigured } from './services/ai';
+import { processApplicantMessage, processAdminMessage, isAIConfigured } from './services/ai';
+import { loadApplications, loadBudgetConfig } from './services/data';
 import type { Message, ApplicationFormData } from '@dove-grants/shared';
 
 const app = express();
@@ -80,6 +81,7 @@ const conversations = new Map<
   {
     history: Message[];
     formData: Partial<ApplicationFormData>;
+    context: 'application' | 'admin';
   }
 >();
 
@@ -90,19 +92,8 @@ wss.on('connection', (ws) => {
   conversations.set(ws, {
     history: [],
     formData: {},
+    context: 'application',
   });
-
-  // Send welcome message
-  ws.send(
-    JSON.stringify({
-      type: 'message',
-      data: {
-        message: "Hi! I'm here to help you apply for a grant. Tell me about your project!",
-        fieldUpdates: [],
-        isComplete: false,
-      },
-    })
-  );
 
   ws.on('message', async (data) => {
     try {
@@ -111,7 +102,12 @@ wss.on('connection', (ws) => {
 
       if (!state) return;
 
-      if (parsed.type === 'chat') {
+      if (parsed.type === 'setContext') {
+        // Update context (admin or application)
+        state.context = parsed.context || 'application';
+        state.history = []; // Clear history on context switch
+        console.log(`Context set to: ${state.context}`);
+      } else if (parsed.type === 'chat') {
         const userMessage = parsed.message;
 
         // Add user message to history
@@ -123,14 +119,28 @@ wss.on('connection', (ws) => {
         });
 
         if (isAIConfigured()) {
-          // Process with AI
-          const response = await processApplicantMessage(userMessage, state.history, state.formData);
+          let response;
+          
+          if (state.context === 'admin') {
+            // Load current data for admin context
+            const applications = await loadApplications();
+            const budgetConfig = await loadBudgetConfig();
+            response = await processAdminMessage(
+              userMessage, 
+              state.history, 
+              applications, 
+              budgetConfig.categories
+            );
+          } else {
+            // Process with AI for applicant
+            response = await processApplicantMessage(userMessage, state.history, state.formData);
 
-          // Update form data with field updates
-          response.fieldUpdates.forEach((update) => {
-            (state.formData as Record<string, string | number>)[update.field] =
-              update.field === 'requestedAmount' ? parseFloat(update.value) : update.value;
-          });
+            // Update form data with field updates
+            response.fieldUpdates.forEach((update) => {
+              (state.formData as Record<string, string | number>)[update.field] =
+                update.field === 'requestedAmount' ? parseFloat(update.value) : update.value;
+            });
+          }
 
           // Add assistant message to history
           state.history.push({

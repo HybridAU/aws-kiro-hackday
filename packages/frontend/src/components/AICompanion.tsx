@@ -33,10 +33,14 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
   modeRef.current = mode;
   contextRef.current = context;
 
-  // Reset messages when context changes
+  // Reset messages and notify server when context changes
   useEffect(() => {
     setMessages([]);
     hasReceivedWelcome.current = false;
+    // Notify server of context change
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'setContext', context }));
+    }
   }, [context]);
 
   useEffect(() => {
@@ -45,6 +49,8 @@ export function AICompanion({ mode, onFieldUpdate, onModeChange, context }: AICo
 
     ws.onopen = () => {
       setIsConnected(true);
+      // Send initial context
+      ws.send(JSON.stringify({ type: 'setContext', context: contextRef.current }));
     };
 
     ws.onmessage = (event) => {
