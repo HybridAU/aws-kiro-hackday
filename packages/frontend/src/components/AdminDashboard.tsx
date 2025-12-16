@@ -88,7 +88,23 @@ export function AdminDashboard() {
   const [feedbackApp, setFeedbackApp] = useState<Application | null>(null);
   const [feedbackComments, setFeedbackComments] = useState('');
   const [showBudgetEditor, setShowBudgetEditor] = useState(false);
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const menuButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('desc');
+    }
+  };
+
+  const getSortIcon = (column: string) => {
+    if (sortColumn !== column) return '↕️';
+    return sortDirection === 'asc' ? '↑' : '↓';
+  };
 
   const fetchData = async () => {
     try {
@@ -188,11 +204,43 @@ export function AdminDashboard() {
     }
   };
 
-  const filteredApps = applications.filter((app) => {
-    if (filter.category && app.categoryId !== filter.category) return false;
-    if (filter.status && app.status !== filter.status) return false;
-    return true;
-  });
+  const filteredApps = applications
+    .filter((app) => {
+      if (filter.category && app.categoryId !== filter.category) return false;
+      if (filter.status && app.status !== filter.status) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (!sortColumn) return 0;
+      
+      let aVal: number | string = 0;
+      let bVal: number | string = 0;
+      
+      switch (sortColumn) {
+        case 'amount':
+          aVal = a.requestedAmount;
+          bVal = b.requestedAmount;
+          break;
+        case 'score':
+          aVal = a.rankingScore ?? -1;
+          bVal = b.rankingScore ?? -1;
+          break;
+        case 'applicant':
+          aVal = a.applicantName.toLowerCase();
+          bVal = b.applicantName.toLowerCase();
+          break;
+        case 'project':
+          aVal = a.projectTitle.toLowerCase();
+          bVal = b.projectTitle.toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+      
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
 
   if (loading) {
     return (
@@ -335,11 +383,31 @@ export function AdminDashboard() {
           <thead className="bg-dove-100">
             <tr>
               <th className="px-3 py-2 text-left text-sm">Reference</th>
-              <th className="px-3 py-2 text-left text-sm">Applicant</th>
-              <th className="px-3 py-2 text-left text-sm">Project</th>
-              <th className="px-3 py-2 text-right text-sm">Amount</th>
+              <th 
+                className="px-3 py-2 text-left text-sm cursor-pointer hover:bg-dove-200 select-none"
+                onClick={() => handleSort('applicant')}
+              >
+                Applicant {getSortIcon('applicant')}
+              </th>
+              <th 
+                className="px-3 py-2 text-left text-sm cursor-pointer hover:bg-dove-200 select-none"
+                onClick={() => handleSort('project')}
+              >
+                Project {getSortIcon('project')}
+              </th>
+              <th 
+                className="px-3 py-2 text-right text-sm cursor-pointer hover:bg-dove-200 select-none"
+                onClick={() => handleSort('amount')}
+              >
+                Amount {getSortIcon('amount')}
+              </th>
               <th className="px-3 py-2 text-center text-sm">Status</th>
-              <th className="px-3 py-2 text-center text-sm">Score</th>
+              <th 
+                className="px-3 py-2 text-center text-sm cursor-pointer hover:bg-dove-200 select-none"
+                onClick={() => handleSort('score')}
+              >
+                Score {getSortIcon('score')}
+              </th>
               <th className="px-3 py-2 text-center text-sm min-w-[120px]">Actions</th>
             </tr>
           </thead>
