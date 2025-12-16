@@ -1,5 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 
+// Format large numbers compactly (e.g., $1.2M, $850K)
+function formatCurrency(amount: number): string {
+  if (amount >= 1000000) {
+    return `$${(amount / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+  }
+  if (amount >= 1000) {
+    return `$${(amount / 1000).toFixed(0)}K`;
+  }
+  return `$${amount.toLocaleString()}`;
+}
+
 interface Category {
   id: string;
   name: string;
@@ -192,16 +203,16 @@ export function AdminDashboard() {
         <div className="grid grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="text-sm text-dove-500">Total Budget</h3>
-            <p className="text-2xl font-bold">${budgetStatus.totalBudget.toLocaleString()}</p>
+            <p className="text-2xl font-bold">{formatCurrency(budgetStatus.totalBudget)}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="text-sm text-dove-500">Allocated</h3>
-            <p className="text-2xl font-bold">${budgetStatus.totalAllocated.toLocaleString()}</p>
+            <p className="text-2xl font-bold">{formatCurrency(budgetStatus.totalAllocated)}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-sm text-dove-500">Spent</h3>
+            <h3 className="text-sm text-dove-500">Disbursed</h3>
             <p className="text-2xl font-bold text-green-600">
-              ${budgetStatus.totalSpent.toLocaleString()}
+              {formatCurrency(budgetStatus.totalSpent)}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
@@ -237,8 +248,7 @@ export function AdminDashboard() {
                 </div>
               </div>
               <div className="text-sm text-dove-500 mb-2">
-                ${cat.category.spentBudget.toLocaleString()} / $
-                {cat.category.allocatedBudget.toLocaleString()}
+                {formatCurrency(cat.category.spentBudget)} / {formatCurrency(cat.category.allocatedBudget)}
               </div>
               <div className="w-full bg-dove-200 rounded-full h-2 mb-2">
                 <div
@@ -316,7 +326,7 @@ export function AdminDashboard() {
                 <td className="px-3 py-2 font-mono text-xs">{app.referenceNumber}</td>
                 <td className="px-3 py-2 text-sm truncate max-w-[120px]">{app.applicantName}</td>
                 <td className="px-3 py-2 text-sm truncate max-w-[150px]">{app.projectTitle}</td>
-                <td className="px-3 py-2 text-right text-sm">${app.requestedAmount.toLocaleString()}</td>
+                <td className="px-3 py-2 text-right text-sm">{formatCurrency(app.requestedAmount)}</td>
                 <td className="px-3 py-2 text-center">
                   <span
                     className={`px-2 py-1 rounded text-xs whitespace-nowrap ${
@@ -581,7 +591,7 @@ export function AdminDashboard() {
               </div>
               <div>
                 <label className="text-xs text-dove-500">Requested Amount</label>
-                <p className="font-medium text-lg">${viewingApp.requestedAmount.toLocaleString()}</p>
+                <p className="font-medium text-lg">{formatCurrency(viewingApp.requestedAmount)}</p>
               </div>
               <div>
                 <label className="text-xs text-dove-500">Score</label>

@@ -1,45 +1,45 @@
 {
   "fiscalYear": 2025,
-  "totalBudget": 100000,
+  "totalBudget": 120000000,
   "categories": [
     {
       "id": "medical",
-      "name": "Medical Research",
-      "description": "Healthcare and medical research projects",
-      "allocatedBudget": 30000,
-      "spentBudget": 25000,
+      "name": "Health & Wellbeing",
+      "description": "Healthcare, medical research, and mental health initiatives",
+      "allocatedBudget": 35000000,
+      "spentBudget": 28500000,
       "isActive": true
     },
     {
       "id": "sport",
-      "name": "Youth Sports",
-      "description": "Athletic programs and youth sports initiatives",
-      "allocatedBudget": 20000,
-      "spentBudget": 0,
+      "name": "Sport & Recreation",
+      "description": "Athletic programs, facilities, and community sports",
+      "allocatedBudget": 25000000,
+      "spentBudget": 18200000,
       "isActive": true
     },
     {
       "id": "education",
-      "name": "Education",
-      "description": "Educational initiatives and learning programs",
-      "allocatedBudget": 25000,
-      "spentBudget": 18000,
+      "name": "Education & Training",
+      "description": "Educational initiatives, scholarships, and skills development",
+      "allocatedBudget": 22000000,
+      "spentBudget": 15800000,
       "isActive": true
     },
     {
       "id": "arts",
       "name": "Arts & Culture",
-      "description": "Cultural and artistic projects",
-      "allocatedBudget": 15000,
-      "spentBudget": 0,
+      "description": "Cultural programs, heritage preservation, and creative arts",
+      "allocatedBudget": 20000000,
+      "spentBudget": 12500000,
       "isActive": true
     },
     {
       "id": "community",
       "name": "Community Development",
-      "description": "Community building and social programs",
-      "allocatedBudget": 10000,
-      "spentBudget": 0,
+      "description": "Social services, infrastructure, and community building",
+      "allocatedBudget": 18000000,
+      "spentBudget": 9800000,
       "isActive": true
     }
   ]
