@@ -196,6 +196,15 @@ export function AdminDashboard() {
     );
   }
 
+  // If budget editor is open, show it inline instead of the dashboard
+  if (showBudgetEditor) {
+    return (
+      <div className="p-6">
+        <BudgetEditor onClose={() => { setShowBudgetEditor(false); fetchData(); }} />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -767,12 +776,6 @@ export function AdminDashboard() {
         </div>
       )}
 
-      {/* Budget Editor Modal/Overlay */}
-      {showBudgetEditor && (
-        <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
-          <BudgetEditor onClose={() => setShowBudgetEditor(false)} />
-        </div>
-      )}
     </div>
   );
 }
